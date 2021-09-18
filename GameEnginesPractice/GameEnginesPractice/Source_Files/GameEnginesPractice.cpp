@@ -2,11 +2,15 @@
 //
 
 #include "GameEnginesPractice.h"
+#include "Game.h"
 
-using namespace std;
-
-int main()
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR    lpCmdLine,
+    _In_ int       nCmdShow)
 {
-	cout << "Hello CMake." << endl;
-	return 0;
+    Game* pGame = new Game();
+    pGame->Run();
+
+    return 0;
 }
