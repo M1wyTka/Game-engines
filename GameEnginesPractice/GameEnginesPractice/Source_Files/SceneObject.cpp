@@ -4,7 +4,7 @@ SceneObject::SceneObject(Ogre::SceneManager* sceneManager)
 {
 	m_pSceneManager = sceneManager;
 
-	SO_LoadMeshModel();
+	SO_LoadMeshModel("ogrehead.mesh");
 
 	SO_LoadManagerItems();
 }
