@@ -24,7 +24,7 @@ private:
 	Ogre::Item* m_pItem;
 
 private:
-	void SO_LoadMeshModel(Ogre::String meshName);
+	void SO_LoadMeshModel();
 	void SO_LoadManagerItems();
 };
 
