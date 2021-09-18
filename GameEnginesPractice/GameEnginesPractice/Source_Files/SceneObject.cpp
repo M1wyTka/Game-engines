@@ -1,12 +1,11 @@
 #include "SceneObject.h"
 
-SceneObject::SceneObject(Ogre::SceneManager* sceneManager)
+SceneObject::SceneObject(Ogre::SceneManager& sceneManager, Ogre::String meshName)
 {
-	m_pSceneManager = sceneManager;
 
-	SO_LoadMeshModel("ogrehead.mesh");
+	SO_LoadMeshModel(meshName);
 
-	SO_LoadManagerItems();
+	SO_LoadManagerItems(sceneManager);
 }
 
 SceneObject::~SceneObject()
@@ -23,7 +22,7 @@ void SceneObject::SO_LoadMeshModel(Ogre::String meshName)
 
 	//Create a v2 mesh to import to, with a different name (arbitrary).
 	v2Mesh = Ogre::MeshManager::getSingleton().createManual(
-		IMPORT_NAME("ogrehead.mesh"), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+		IMPORT_NAME(meshName), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 
 	bool halfPosition = true;
 	bool halfUVs = true;
@@ -37,15 +36,16 @@ void SceneObject::SO_LoadMeshModel(Ogre::String meshName)
 	v1Mesh->unload();
 }
 
-void SceneObject::SO_LoadManagerItems()
+void SceneObject::SO_LoadManagerItems(Ogre::SceneManager& sceneManager)
 {
 	//Create an Item with the model we just imported.
 	//Notice we use the name of the imported model. We could also use the overload
 	//with the mesh pointer:
-	m_pItem = m_pSceneManager->createItem(IMPORT_NAME("ogrehead.mesh"),
+	
+	m_pItem = sceneManager.createItem(v2Mesh->getName(),
 		Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME,
 		Ogre::SCENE_DYNAMIC);
-	m_pSceneNode = m_pSceneManager->getRootSceneNode(Ogre::SCENE_DYNAMIC)->
+	m_pSceneNode = sceneManager.getRootSceneNode(Ogre::SCENE_DYNAMIC)->
 		createChildSceneNode(Ogre::SCENE_DYNAMIC);
 	m_pSceneNode->attachObject(m_pItem);
 	m_pSceneNode->scale(0.1f, 0.1f, 0.1f);
