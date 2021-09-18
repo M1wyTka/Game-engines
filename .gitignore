@@ -10,4 +10,4 @@ CTestTestfile.cmake
 Ogre3d/sdk/
 GameEnginesPractice/out/build/
 GameEnginesPractice/.vs/
-GameEnginesPractice/Media/
+GameEnginesPractice/Media/*
