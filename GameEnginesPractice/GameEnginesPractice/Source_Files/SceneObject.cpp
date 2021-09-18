@@ -13,12 +13,12 @@ SceneObject::~SceneObject()
 {
 }
 
-void SceneObject::SO_LoadMeshModel()
+void SceneObject::SO_LoadMeshModel(Ogre::String meshName)
 {
 	Ogre::v1::MeshPtr v1Mesh;
 
 	v1Mesh = Ogre::v1::MeshManager::getSingleton().load(
-		"ogrehead.mesh", Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME,
+		meshName, Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME,
 		Ogre::v1::HardwareBuffer::HBU_STATIC, Ogre::v1::HardwareBuffer::HBU_STATIC);
 
 	//Create a v2 mesh to import to, with a different name (arbitrary).
