@@ -4,7 +4,7 @@
 cmake_minimum_required (VERSION 3.8)
 
 
-add_executable (GameEnginesPractice WIN32 "Source_Files/GameEnginesPractice.cpp" "Header_Files/GameEnginesPractice.h" "Header_Files/Framework.h" "Header_Files/Game.h" "Header_Files/GameTimer.h" "Header_Files/GeneralDefines.h" "Header_Files/RenderEngine.h" "Header_Files/RenderThread.h" "Header_Files/Resource.h" "Header_Files/SceneObject.h" "Source_Files/Game.cpp" "Source_Files/GameTimer.cpp" "Source_Files/RenderEngine.cpp" "Source_Files/RenderThread.cpp" "Source_Files/SceneObject.cpp" "Header_Files/Universe.h" "Header_Files/CelestialBody.h" "Source_Files/CelestialBody.cpp")
+add_executable (GameEnginesPractice WIN32 "Source_Files/GameEnginesPractice.cpp" "Header_Files/GameEnginesPractice.h" "Header_Files/Framework.h" "Header_Files/Game.h" "Header_Files/GameTimer.h" "Header_Files/RenderEngine.h" "Header_Files/RenderThread.h" "Header_Files/Resource.h" "Header_Files/SceneObject.h" "Source_Files/Game.cpp" "Source_Files/GameTimer.cpp" "Source_Files/RenderEngine.cpp" "Source_Files/RenderThread.cpp" "Source_Files/SceneObject.cpp" "Header_Files/Universe.h" "Header_Files/CelestialBody.h" "Source_Files/CelestialBody.cpp")
 target_link_libraries(GameEnginesPractice ${OGRE_LIBRARIES} ${OGRE_RenderSystem_Direct3D11_LIBRARIES} ${OGRE_HlmsUnlit_LIBRARIES} ${OGRE_HlmsPbs_LIBRARIES})
 target_include_directories(GameEnginesPractice PRIVATE ${OGRE_INCLUDE_DIRS} ${OGRE_RenderSystem_Direct3D11_INCLUDE_DIRS})
 target_include_directories(GameEnginesPractice PRIVATE "Header_Files")

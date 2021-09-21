@@ -208,6 +208,7 @@ void RenderThread::AddFloat(byte*& ptr, const float fVal)
 template <class T>
 void RenderThread::AddWTF(byte*& ptr, T TVal)
 {
+	static_assert(std::is_trivially_copyable_v<float>);
 	*(T*)ptr = TVal;
 	ptr += sizeof(T);
 }

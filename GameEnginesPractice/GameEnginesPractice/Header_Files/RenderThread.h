@@ -67,7 +67,7 @@ private:
 	inline void AddFloat(byte*& ptr, const float fVal);
 
 	template <class T>
-	inline void AddWTF(byte*& ptr, T TVal);
+	void AddWTF(byte*& ptr, T TVal);
 
 	bool IsRenderThread();
 
