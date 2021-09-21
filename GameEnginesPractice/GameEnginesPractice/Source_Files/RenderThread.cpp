@@ -136,6 +136,23 @@ void RenderThread::ProcessCommands()
 			m_pRenderEngine->RT_LoadOgreHead();
 			break;
 		}
+		case eRC_LoadActor:
+		{
+			// Read command
+			Ogre::String name = ReadCommand<Ogre::String>(n);
+			Ogre::String meshName = ReadCommand<Ogre::String>(n);
+			Ogre::Vector3 pos = ReadCommand<Ogre::Vector3>(n);
+			m_pRenderEngine->RT_LoadActor(name, meshName, pos);
+			break;
+		}
+		case eRC_UpdateActorPosition:
+		{
+			// Read command
+			Ogre::String name = ReadCommand<Ogre::String>(n);
+			Ogre::Vector3 pos = ReadCommand<Ogre::Vector3>(n);
+			m_pRenderEngine->RT_UpdateActorPosition(name, pos);
+			break;
+		}
 		case eRC_SetupDefaultLight:
 		{
 			m_pRenderEngine->RT_SetupDefaultLight();
@@ -186,6 +203,13 @@ void RenderThread::AddFloat(byte*& ptr, const float fVal)
 {
 	*(float*)ptr = fVal;
 	ptr += sizeof(float);
+}
+
+template <class T>
+void RenderThread::AddWTF(byte*& ptr, T TVal)
+{
+	*(T*)ptr = TVal;
+	ptr += sizeof(T);
 }
 
 void RenderThread::RC_Init()
@@ -248,6 +272,27 @@ void RenderThread::RC_LoadOgreHead()
 	byte* p = AddCommand(eRC_LoadOgreHead, 0);
 }
 
+void RenderThread::RC_LoadActor(Ogre::String actor, Ogre::String meshName, Ogre::Vector3 pos)
+{
+	if (IsRenderThread())
+	{
+		m_pRenderEngine->RT_LoadOgreHead();
+		return;
+	}
+
+	LOADINGCOMMAND_CRITICAL_SECTION;
+	size_t total = 2 * sizeof(Ogre::String) + sizeof(Ogre::Vector3);
+	byte* p = AddCommand(eRC_LoadActor, total);
+	AddWTF<Ogre::String>(p, actor);
+	AddWTF<Ogre::String>(p, meshName);
+	AddWTF<Ogre::Vector3>(p, pos);
+}
+
+void RenderThread::RC_UpdateActorPosition(Ogre::String actor, Ogre::Vector3 pos)
+{
+	
+}
+
 void RenderThread::RC_SetupDefaultLight()
 {
 	if (IsRenderThread())
@@ -265,6 +310,7 @@ void RenderThread::RC_OscillateCamera(float time)
 	if (IsRenderThread())
 	{
 		m_pRenderEngine->RT_OscillateCamera(time);
+		
 		return;
 	}
 

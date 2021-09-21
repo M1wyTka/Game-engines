@@ -16,6 +16,8 @@ enum RenderCommand : UINT32
 	eRC_SetupDefaultCompositor,
 	eRC_LoadDefaultResources,
 	eRC_LoadOgreHead,
+	eRC_LoadActor,
+	eRC_UpdateActorPosition,
 	eRC_SetupDefaultLight,
 	eRC_OscillateCamera,
 	eRC_BeginFrame,
@@ -36,8 +38,10 @@ public:
 	void RC_SetupDefaultCompositor();
 	void RC_LoadDefaultResources();
 	void RC_LoadOgreHead();
+	void RC_LoadActor(Ogre::String actor, Ogre::String meshName, Ogre::Vector3 pos);
 	void RC_SetupDefaultLight();
 	void RC_OscillateCamera(float time);
+	void RC_UpdateActorPosition(Ogre::String actor, Ogre::Vector3 pos);
 	void RC_BeginFrame();
 	void RC_EndFrame();
 
@@ -61,6 +65,9 @@ private:
 	inline byte* AddCommand(RenderCommand eRC, size_t nParamBytes);
 	inline void AddDWORD(byte*& ptr, UINT32 nVal);
 	inline void AddFloat(byte*& ptr, const float fVal);
+
+	template <class T>
+	inline void AddWTF(byte*& ptr, T TVal);
 
 	bool IsRenderThread();
 

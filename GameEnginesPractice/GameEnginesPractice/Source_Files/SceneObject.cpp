@@ -51,7 +51,17 @@ void SceneObject::SO_LoadManagerItems(Ogre::SceneManager& sceneManager)
 	m_pSceneNode->scale(0.1f, 0.1f, 0.1f);
 }
 
+void SceneObject::SO_SetScale(Ogre::Real x, Ogre::Real y, Ogre::Real z)
+{
+	m_pSceneNode->scale(x, y, z);
+}
+
 void SceneObject::SO_SetPosition(Ogre::Vector3 newPos)
 {
 	m_pSceneNode->setPosition(newPos);
+}
+
+Ogre::Vector3 SceneObject::SO_GetPosition()
+{
+	return m_pSceneNode->getPosition();
 }

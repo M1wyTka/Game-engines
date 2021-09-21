@@ -16,6 +16,9 @@ public:
 	~SceneObject();
 
 	void SO_SetPosition(Ogre::Vector3 newPos);
+	Ogre::Vector3 SO_GetPosition();
+
+	void SO_SetScale(Ogre::Real x, Ogre::Real y, Ogre::Real z);
 
 private:
 	Ogre::MeshPtr v2Mesh;

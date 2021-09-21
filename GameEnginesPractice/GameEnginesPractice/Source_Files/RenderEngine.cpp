@@ -86,7 +86,7 @@ void RenderEngine::RT_SetupDefaultCamera()
 {
 	m_pCamera = m_pSceneManager->createCamera("Main Camera");
 
-	m_pCamera->setPosition(Ogre::Vector3(0, 10, 15));
+	m_pCamera->setPosition(Ogre::Vector3(100, 100, 100));
 	m_pCamera->lookAt(Ogre::Vector3(0, 0, 0));
 	m_pCamera->setNearClipDistance(0.2f);
 	m_pCamera->setFarClipDistance(1000.0f);
@@ -117,6 +117,18 @@ void RenderEngine::RT_LoadDefaultResources()
 	LoadHlms(cf);
 
 	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups(true);
+}
+
+void RenderEngine::RT_LoadActor(Ogre::String actor, Ogre::String meshName, Ogre::Vector3 pos) 
+{
+	SceneObject* temp = new SceneObject(*m_pSceneManager, meshName);
+	temp->SO_SetPosition(pos);
+	sceneActors.insert({ actor , temp });
+}
+
+void RenderEngine::RT_UpdateActorPosition(Ogre::String actor, Ogre::Vector3 pos) 
+{
+	sceneActors[actor]->SO_SetPosition(pos);
 }
 
 void RenderEngine::LoadConfigSections(Ogre::ConfigFile& cf) 
@@ -232,8 +244,15 @@ void RenderEngine::SetHlmsTextureBufferSize(Ogre::HlmsPbs* hlmsPbs, Ogre::HlmsUn
 
 void RenderEngine::RT_LoadOgreHead()
 {
-	OgreHead = new SceneObject(*m_pSceneManager, "fish.mesh");
-	OgreHead->SO_SetPosition(Ogre::Vector3(0, 0, 5));
+	OgreHead = new SceneObject(*m_pSceneManager, "ogrehead.mesh");
+	OgreHead->SO_SetPosition(Ogre::Vector3(-5, 0, 10));
+	
+	Cube = new SceneObject(*m_pSceneManager, "Sphere.mesh");
+	Cube->SO_SetPosition(Ogre::Vector3(0, 0, -10));
+	
+	Barrel = new SceneObject(*m_pSceneManager, "Barrel.mesh");
+	Barrel->SO_SetPosition(Ogre::Vector3(0, 0, 0));
+	Barrel->SO_SetScale(10, 10, 10);
 }
 
 void RenderEngine::RT_SetupDefaultLight()
@@ -249,6 +268,6 @@ void RenderEngine::RT_SetupDefaultLight()
 
 void RenderEngine::RT_OscillateCamera(float time)
 {
-	OgreHead->SO_SetPosition(Ogre::Vector3(0, time, 0));
 	//m_pCamera->setPosition(Ogre::Vector3(0, time, 15));
 }
+

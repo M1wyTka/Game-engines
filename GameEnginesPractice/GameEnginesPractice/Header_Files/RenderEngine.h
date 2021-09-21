@@ -7,6 +7,7 @@
 #include "OgreMeshManager2.h"
 #include "OgreMesh2.h"
 
+#include "CelestialBody.h"
 #include "SceneObject.h"
 
 #include "Compositor/OgreCompositorManager2.h"
@@ -35,6 +36,7 @@ public:
 	void SetQuit(bool bQuit) { m_bQuit = bQuit; }
 
 	RenderThread* GetRT() const { return m_pRT; }
+	SceneObject* CreateSceneObject(Ogre::String actorName, Ogre::String meshName);
 
 private:
 	bool SetOgreConfig();
@@ -51,6 +53,8 @@ private:
 	void RT_SetupDefaultCompositor();
 	void RT_LoadDefaultResources();
 	void RT_LoadOgreHead();
+	void RT_LoadActor(Ogre::String actor, Ogre::String meshName, Ogre::Vector3 pos);
+	void RT_UpdateActorPosition(Ogre::String actor, Ogre::Vector3 pos);
 	void RT_SetupDefaultLight();
 	void RT_OscillateCamera(float time);
 
@@ -61,6 +65,10 @@ private:
 	Ogre::CompositorWorkspace* m_pWorkspace;
 	Ogre::D3D11Plugin* m_pD3D11Plugin;
 	SceneObject* OgreHead;
+	SceneObject* Cube;
+	SceneObject* Barrel;
+
+	std::map<Ogre::String, SceneObject*> sceneActors;
 
 	RenderThread* m_pRT;
 
