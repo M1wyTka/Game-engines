@@ -2,6 +2,7 @@
 
 #include "GeneralDefines.h"
 
+
 RenderEngine::RenderEngine() :
 	m_pRoot(nullptr),
 	m_pRenderWindow(nullptr),
@@ -10,6 +11,7 @@ RenderEngine::RenderEngine() :
 	m_pCamera(nullptr),
 	m_pWorkspace(nullptr),
 	m_pRT(nullptr),
+	m_pSceneObjectProducer(nullptr),
 	m_bQuit(false)
 {
 	m_pRT = new RenderThread(this);
@@ -79,14 +81,15 @@ void RenderEngine::RT_Init()
 	m_pRenderWindow = Ogre::Root::getSingleton().createRenderWindow(sTitleName, width, height, false);
 
 	// Scene manager
-	m_pSceneManager = m_pRoot->createSceneManager(Ogre::SceneType::ST_GENERIC, 1);
+	m_pSceneManager = m_pRoot->createSceneManager(Ogre::SceneType::ST_GENERIC, 2);
+	m_pSceneObjectProducer = new SceneObjectProducer(m_pSceneManager);
 }
 
 void RenderEngine::RT_SetupDefaultCamera()
 {
 	m_pCamera = m_pSceneManager->createCamera("Main Camera");
 
-	m_pCamera->setPosition(Ogre::Vector3(100, 100, 100));
+	m_pCamera->setPosition(Ogre::Vector3(150, 150, 150));
 	m_pCamera->lookAt(Ogre::Vector3(0, 0, 0));
 	m_pCamera->setNearClipDistance(0.2f);
 	m_pCamera->setFarClipDistance(1000.0f);
@@ -119,16 +122,9 @@ void RenderEngine::RT_LoadDefaultResources()
 	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups(true);
 }
 
-void RenderEngine::RT_LoadActor(Ogre::String actor, Ogre::String meshName, Ogre::Vector3 pos) 
+void RenderEngine::RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos)
 {
-	SceneObject* temp = new SceneObject(*m_pSceneManager, meshName);
-	temp->SO_SetPosition(pos);
-	sceneActors.insert({ actor , temp });
-}
-
-void RenderEngine::RT_UpdateActorPosition(Ogre::String actor, Ogre::Vector3 pos) 
-{
-	sceneActors[actor]->SO_SetPosition(pos);
+	actor->SO_SetPosition(pos);
 }
 
 void RenderEngine::LoadConfigSections(Ogre::ConfigFile& cf) 
@@ -244,15 +240,18 @@ void RenderEngine::SetHlmsTextureBufferSize(Ogre::HlmsPbs* hlmsPbs, Ogre::HlmsUn
 
 void RenderEngine::RT_LoadOgreHead()
 {
-	OgreHead = new SceneObject(*m_pSceneManager, "ogrehead.mesh");
-	OgreHead->SO_SetPosition(Ogre::Vector3(-5, 0, 10));
-	
-	Cube = new SceneObject(*m_pSceneManager, "Sphere.mesh");
-	Cube->SO_SetPosition(Ogre::Vector3(0, 0, -10));
-	
-	Barrel = new SceneObject(*m_pSceneManager, "Barrel.mesh");
-	Barrel->SO_SetPosition(Ogre::Vector3(0, 0, 0));
-	Barrel->SO_SetScale(10, 10, 10);
+
+	//OgreHead = m_pSceneObjectProducer->Produce("Ogre", "ogrehead.mesh"); 
+	//OgreHead->SO_SetPosition(Ogre::Vector3(0, 0, 20));
+
+	//Cube = m_pSceneObjectProducer->Produce("cube", "Sphere.mesh");
+	//Cube->SO_SetPosition(Ogre::Vector3(0, 0, -20));
+	////Cube->SO_SetScale(0.1f, 0.1f, 0.1f);
+
+	//Barrel = m_pSceneObjectProducer->Produce("bar", "Barrel.mesh");
+	//Barrel->SO_SetPosition(Ogre::Vector3(0, 0, 0));
+	//Barrel->SO_SetScale(10, 10, 10);
+
 }
 
 void RenderEngine::RT_SetupDefaultLight()
@@ -271,3 +270,11 @@ void RenderEngine::RT_OscillateCamera(float time)
 	//m_pCamera->setPosition(Ogre::Vector3(0, time, 15));
 }
 
+
+SceneObject* RenderEngine::CreateSceneObject(Ogre::String actorName, Ogre::String meshName) 
+{
+	//std::lock_guard<std::mutex> lock(creation);
+	return m_pSceneObjectProducer->Produce(actorName, meshName);
+
+	//return new SceneObject(*m_pSceneManager, meshName);
+}

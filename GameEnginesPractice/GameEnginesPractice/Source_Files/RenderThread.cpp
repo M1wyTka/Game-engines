@@ -136,21 +136,15 @@ void RenderThread::ProcessCommands()
 			m_pRenderEngine->RT_LoadOgreHead();
 			break;
 		}
-		case eRC_LoadActor:
-		{
-			// Read command
-			Ogre::String name = ReadCommand<Ogre::String>(n);
-			Ogre::String meshName = ReadCommand<Ogre::String>(n);
-			Ogre::Vector3 pos = ReadCommand<Ogre::Vector3>(n);
-			m_pRenderEngine->RT_LoadActor(name, meshName, pos);
-			break;
-		}
 		case eRC_UpdateActorPosition:
 		{
 			// Read command
-			Ogre::String name = ReadCommand<Ogre::String>(n);
-			Ogre::Vector3 pos = ReadCommand<Ogre::Vector3>(n);
-			m_pRenderEngine->RT_UpdateActorPosition(name, pos);
+			SceneObject* actor = ReadCommand<SceneObject*>(n);
+			float x = ReadCommand<float>(n);
+			float y = ReadCommand<float>(n);
+			float z = ReadCommand<float>(n);
+			//Ogre::Vector3 pos = ReadCommand<Ogre::Vector3>(n);
+			m_pRenderEngine->RT_UpdateActorPosition(actor, Ogre::Vector3(x,y,z));
 			break;
 		}
 		case eRC_SetupDefaultLight:
@@ -208,7 +202,7 @@ void RenderThread::AddFloat(byte*& ptr, const float fVal)
 template <class T>
 void RenderThread::AddWTF(byte*& ptr, T TVal)
 {
-	static_assert(std::is_trivially_copyable_v<float>);
+	static_assert(std::is_trivially_copyable_v<T>);
 	*(T*)ptr = TVal;
 	ptr += sizeof(T);
 }
@@ -273,25 +267,27 @@ void RenderThread::RC_LoadOgreHead()
 	byte* p = AddCommand(eRC_LoadOgreHead, 0);
 }
 
-void RenderThread::RC_LoadActor(Ogre::String actor, Ogre::String meshName, Ogre::Vector3 pos)
+void RenderThread::RC_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos)
 {
 	if (IsRenderThread())
 	{
-		m_pRenderEngine->RT_LoadOgreHead();
+		m_pRenderEngine->RT_UpdateActorPosition(actor, pos);
 		return;
 	}
 
 	LOADINGCOMMAND_CRITICAL_SECTION;
-	size_t total = 2 * sizeof(Ogre::String) + sizeof(Ogre::Vector3);
-	byte* p = AddCommand(eRC_LoadActor, total);
-	AddWTF<Ogre::String>(p, actor);
-	AddWTF<Ogre::String>(p, meshName);
-	AddWTF<Ogre::Vector3>(p, pos);
-}
+	float x = pos.x;
+	float y = pos.y;
+	float z = pos.z;
 
-void RenderThread::RC_UpdateActorPosition(Ogre::String actor, Ogre::Vector3 pos)
-{
-	
+	size_t total = sizeof(SceneObject*) + 3*sizeof(float);
+	byte* p = AddCommand(eRC_UpdateActorPosition, total);
+	AddWTF<SceneObject*>(p, actor);
+	AddFloat(p, x);
+	AddFloat(p, y);
+	AddFloat(p, z);
+
+	//actor->SO_SetPosition(pos);
 }
 
 void RenderThread::RC_SetupDefaultLight()
@@ -311,7 +307,6 @@ void RenderThread::RC_OscillateCamera(float time)
 	if (IsRenderThread())
 	{
 		m_pRenderEngine->RT_OscillateCamera(time);
-		
 		return;
 	}
 

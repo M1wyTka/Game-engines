@@ -6,6 +6,7 @@
 #include "Universe.h"
 #include <vector>
 
+
 class Game
 {
 public:
@@ -21,6 +22,6 @@ private:
 	GameTimer m_Timer;
 	RenderEngine* m_pRenderEngine;
 	
-	std::vector<CelestialBody*> solarSystem;
+	std::vector<std::unique_ptr<CelestialBody>> solarSystem;
 	void GenerateSolarSystem();
 };

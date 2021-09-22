@@ -9,6 +9,7 @@
 
 #include "CelestialBody.h"
 #include "SceneObject.h"
+#include "SceneObjectProducer.h"
 
 #include "Compositor/OgreCompositorManager2.h"
 
@@ -19,6 +20,7 @@
 #include "RenderSystems/Direct3D11/OgreD3D11Plugin.h"
 
 #include "RenderThread.h"
+#include <mutex>
 
 class RenderEngine
 {
@@ -53,8 +55,7 @@ private:
 	void RT_SetupDefaultCompositor();
 	void RT_LoadDefaultResources();
 	void RT_LoadOgreHead();
-	void RT_LoadActor(Ogre::String actor, Ogre::String meshName, Ogre::Vector3 pos);
-	void RT_UpdateActorPosition(Ogre::String actor, Ogre::Vector3 pos);
+	void RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos);
 	void RT_SetupDefaultLight();
 	void RT_OscillateCamera(float time);
 
@@ -68,7 +69,8 @@ private:
 	SceneObject* Cube;
 	SceneObject* Barrel;
 
-	std::map<Ogre::String, SceneObject*> sceneActors;
+	SceneObjectProducer* m_pSceneObjectProducer;
+	std::mutex creation; // protects m_pSceneObjectProducer
 
 	RenderThread* m_pRT;
 

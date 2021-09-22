@@ -2,10 +2,14 @@
 
 SceneObject::SceneObject(Ogre::SceneManager& sceneManager, Ogre::String meshName)
 {
-
 	SO_LoadMeshModel(meshName);
 
 	SO_LoadManagerItems(sceneManager);
+}
+
+SceneObject::SceneObject(Ogre::String name, Ogre::SceneNode* sceneNode) : m_strName(name), m_pSceneNode(sceneNode)
+{
+	m_pSceneNode->scale(0.1f, 0.1f, 0.1f);
 }
 
 SceneObject::~SceneObject()
@@ -19,11 +23,12 @@ void SceneObject::SO_LoadMeshModel(Ogre::String meshName)
 	v1Mesh = Ogre::v1::MeshManager::getSingleton().load(
 		meshName, Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME,
 		Ogre::v1::HardwareBuffer::HBU_STATIC, Ogre::v1::HardwareBuffer::HBU_STATIC);
-
+	
 	//Create a v2 mesh to import to, with a different name (arbitrary).
 	v2Mesh = Ogre::MeshManager::getSingleton().createManual(
 		IMPORT_NAME(meshName), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-
+	/*Ogre::MeshManager::getSingleton().getByName(
+		IMPORT_NAME(meshName), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);*/
 	bool halfPosition = true;
 	bool halfUVs = true;
 	bool useQtangents = true;

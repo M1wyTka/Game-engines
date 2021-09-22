@@ -2,6 +2,6 @@
 
 
 #define GravConst 6.67f
-#define GravTimestep 0.01f
+#define GravTimestep 0.001f
 
 #define SolarSystemSize 9

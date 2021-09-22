@@ -19,14 +19,14 @@ void CelestialBody::SetBodyParameters(int mass, Ogre::Vector3 InitialPosition, O
 	m_bIsMovable = IsMovable;
 }
 
-void CelestialBody::UpdateVelocity(std::vector<CelestialBody*> allBodies, float timeStep)
+void CelestialBody::UpdateVelocity(std::vector<std::unique_ptr<CelestialBody>>& allBodies, float timeStep)
 {
 	if (!m_bIsMovable)
 		return;
 
 	for (auto& body : allBodies) 
 	{
-		if (body == this)
+		if (body.get() == this)
 			continue;
 		Ogre::Vector3 posDifference = body->GetPosition() - GetPosition();
 		float sqrDistance = posDifference.squaredLength();

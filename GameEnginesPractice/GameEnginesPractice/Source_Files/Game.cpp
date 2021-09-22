@@ -5,8 +5,6 @@ Game::Game() :
 {
 	m_pRenderEngine = new RenderEngine();
 
-	GenerateSolarSystem();
-
 	m_Timer.Start();
 }
 
@@ -17,15 +15,23 @@ Game::~Game()
 void Game::Run()
 {
 	m_Timer.Reset();
-
+	int i = 0;
+	
 	while (true)
 	{
 		m_pRenderEngine->GetRT()->RC_BeginFrame();
 
-		m_Timer.Tick();
-		if (!Update())
-			break;
+		if(i == 300)
+			GenerateSolarSystem();
 
+
+		m_Timer.Tick();
+		
+		if (i >= 300)
+			if(!Update())
+				break;
+
+		i++;
 		m_pRenderEngine->GetRT()->RC_EndFrame();
 	}
 }
@@ -35,14 +41,14 @@ bool Game::Update()
 	static float t = 0;
 	// t += m_Timer.DeltaTime();
 	t += 0.001f;
-	
+
 	for(auto& body : solarSystem)
 		body->UpdateVelocity(solarSystem, GravTimestep);
 
 	for (auto& body : solarSystem) 
 	{
 		body->UpdatePosition(GravTimestep);
-		m_pRenderEngine->GetRT()->RC_UpdateActorPosition(body->GetName(), body->GetPosition());
+		m_pRenderEngine->GetRT()->RC_UpdateActorPosition(&body->GetActor(), body->GetPosition());
 	}
 		
 	m_pRenderEngine->GetRT()->RC_OscillateCamera(sin(t));
@@ -51,17 +57,21 @@ bool Game::Update()
 
 void Game::GenerateSolarSystem()
 {
-	CelestialBody* Sun = new CelestialBody("Sun");
-	Sun->SetBodyParameters(1000, Ogre::Vector3(0, 0, 0), Ogre::Vector3(0, 0, 0), false);
-	m_pRenderEngine->GetRT()->RC_LoadActor("Sun", "penguin.mesh", Ogre::Vector3(0, 0, 0));
-	//m_pRenderEngine->CreateSceneObject("Sun", "penguin.mesh");
-	solarSystem.push_back(Sun);
+	// V = sqrt(G*M/r)
+	std::unique_ptr<CelestialBody> Sun = std::make_unique<CelestialBody>("Sun");
+	Sun->SetBodyParameters(50000, Ogre::Vector3(0, 0, 0), Ogre::Vector3(0, 0, 0), true);
+	Sun->SetSceneNode(m_pRenderEngine->CreateSceneObject("Sun", "Sphere.mesh"));
+	solarSystem.push_back(std::move(Sun));
 
-	CelestialBody* Planet = new CelestialBody("Earth");
-	Planet->SetBodyParameters(1, Ogre::Vector3(0, 0, 50), Ogre::Vector3(11.55f, 0, 0), true);
-	m_pRenderEngine->GetRT()->RC_LoadActor("Earth", "robot.mesh", Ogre::Vector3(0, 0, 50));
-	//m_pRenderEngine->CreateSceneObject("Earth", "robot.mesh");
-	solarSystem.push_back(Planet);
+	std::unique_ptr<CelestialBody> Earth = std::make_unique<CelestialBody>("Earth");
+	Earth->SetBodyParameters(1, Ogre::Vector3(0, 0, 50), Ogre::Vector3(81.91f, 0, 0), true);
+	Earth->SetSceneNode(m_pRenderEngine->CreateSceneObject("Sun", "Sphere.mesh"));
+	solarSystem.push_back(std::move(Earth));
+
+	std::unique_ptr<CelestialBody> Mars = std::make_unique<CelestialBody>("Earth");
+	Mars->SetBodyParameters(1, Ogre::Vector3(0, 0, 100), Ogre::Vector3(8.17f, 0, 0), true);
+	Mars->SetSceneNode(m_pRenderEngine->CreateSceneObject("Mars", "Sphere.mesh"));
+	solarSystem.push_back(std::move(Mars));
 }
 
 
