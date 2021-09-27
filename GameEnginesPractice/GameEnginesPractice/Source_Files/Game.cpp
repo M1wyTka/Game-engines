@@ -3,7 +3,10 @@
 Game::Game() :
 	m_pRenderEngine(nullptr)
 {
-	m_pRenderEngine = new RenderEngine();
+	m_pFileSystem = new FileSystem();
+	m_pInputHandler = new InputHandler(m_pFileSystem->GetMediaRoot());
+	m_pResourceManager = new ResourceManager(m_pFileSystem->GetMediaRoot());
+	m_pRenderEngine = new RenderEngine(m_pResourceManager);
 
 	m_Timer.Start();
 }
@@ -24,6 +27,8 @@ void Game::Run()
 		if(i == 300)
 			GenerateSolarSystem();
 
+		if (m_pInputHandler)
+			m_pInputHandler->Update();
 
 		m_Timer.Tick();
 		
@@ -50,8 +55,16 @@ bool Game::Update()
 		body->UpdatePosition(GravTimestep);
 		m_pRenderEngine->GetRT()->RC_UpdateActorPosition(&body->GetActor(), body->GetPosition());
 	}
-		
-	m_pRenderEngine->GetRT()->RC_OscillateCamera(sin(t));
+	
+	if(m_pInputHandler->GetInputState().test(eIC_GoLeft))
+		m_pRenderEngine->GetRT()->RC_OscillateCamera(5.0f * GravTimestep);
+
+	if (m_pInputHandler->GetInputState().test(eIC_GoRight))
+		m_pRenderEngine->GetRT()->RC_OscillateCamera(-5.0f * GravTimestep);
+
+	/*if (m_pInputHandler->GetInputState().test(eIC_Shoot))
+		m_pRenderEngine->CreateSceneObject()*/
+	
 	return true;
 }
 

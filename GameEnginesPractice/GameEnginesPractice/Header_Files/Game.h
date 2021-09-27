@@ -1,6 +1,9 @@
 #pragma once
 
 #include "RenderEngine.h"
+#include "FileSystem.h"
+#include "ResourceManager.h"
+#include "InputHandler.h"
 #include "GameTimer.h"
 #include "CelestialBody.h"
 #include "Universe.h"
@@ -21,6 +24,9 @@ public:
 private:
 	GameTimer m_Timer;
 	RenderEngine* m_pRenderEngine;
+	FileSystem* m_pFileSystem;
+	ResourceManager* m_pResourceManager;
+	InputHandler* m_pInputHandler;
 	
 	std::vector<std::unique_ptr<CelestialBody>> solarSystem;
 	void GenerateSolarSystem();

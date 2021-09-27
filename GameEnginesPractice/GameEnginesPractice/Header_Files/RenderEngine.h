@@ -3,19 +3,15 @@
 #include "Ogre.h"
 #include "OgreRoot.h"
 #include "OgreWindow.h"
-#include "OgreItem.h"
-#include "OgreMeshManager2.h"
-#include "OgreMesh2.h"
 
-#include "CelestialBody.h"
+#include "GeneralDefines.h"
+
 #include "SceneObject.h"
 #include "SceneObjectProducer.h"
 
-#include "Compositor/OgreCompositorManager2.h"
+#include "ResourceManager.h"
 
-#include "OgreHlms.h"
-#include "Hlms/Unlit/OgreHlmsUnlit.h"
-#include "Hlms/Pbs/OgreHlmsPbs.h"
+#include "Compositor/OgreCompositorManager2.h"
 
 #include "RenderSystems/Direct3D11/OgreD3D11Plugin.h"
 
@@ -27,7 +23,7 @@ class RenderEngine
 	friend class RenderThread;
 
 public:
-	RenderEngine();
+	RenderEngine(ResourceManager* pResourceManager);
 	~RenderEngine();
 	RenderEngine(const RenderEngine&) = delete;
 	RenderEngine& operator=(const RenderEngine&) = delete;
@@ -42,13 +38,6 @@ public:
 
 private:
 	bool SetOgreConfig();
-	void LoadConfigSections(Ogre::ConfigFile& cf);
-	void LoadHlms(Ogre::ConfigFile& cf);
-	Ogre::String GetRootHlmsFolder(Ogre::ConfigFile& cf);
-	void RegisterHlms(Ogre::String rootHlmsFolder);
-	void GetHlmArchiveVec(Ogre::ArchiveVec& archivePbsLibraryFolders, Ogre::String rootHlmsFolder, Ogre::StringVector libraryFoldersPaths);
-	void SetHlmsTextureBufferSize(Ogre::HlmsPbs* hlmsPbs, Ogre::HlmsUnlit* hlmsUnlit);
-
 
 	void RT_Init();
 	void RT_SetupDefaultCamera();
@@ -68,6 +57,8 @@ private:
 	SceneObject* OgreHead;
 	SceneObject* Cube;
 	SceneObject* Barrel;
+
+	ResourceManager* m_pResourceManager;
 
 	SceneObjectProducer* m_pSceneObjectProducer;
 	std::mutex creation; // protects m_pSceneObjectProducer

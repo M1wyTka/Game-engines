@@ -27,8 +27,7 @@ void SceneObject::SO_LoadMeshModel(Ogre::String meshName)
 	//Create a v2 mesh to import to, with a different name (arbitrary).
 	v2Mesh = Ogre::MeshManager::getSingleton().createManual(
 		IMPORT_NAME(meshName), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-	/*Ogre::MeshManager::getSingleton().getByName(
-		IMPORT_NAME(meshName), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);*/
+
 	bool halfPosition = true;
 	bool halfUVs = true;
 	bool useQtangents = true;

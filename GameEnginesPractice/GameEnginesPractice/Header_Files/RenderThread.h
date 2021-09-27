@@ -6,6 +6,7 @@
 
 #include <barrier>
 #include "GeneralDefines.h"
+#include "MTQueue.h"
 
 class RenderEngine;
 
@@ -54,7 +55,8 @@ private:
 
 	RenderEngine* m_pRenderEngine;
 
-	std::vector<byte> m_Commands[2];
+	//std::vector<byte> m_Commands[2];
+	MTQueue<byte> m_Commands[2];
 	int m_nCurrentFrame;
 	int m_nFrameFill;
 

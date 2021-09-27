@@ -1,9 +1,6 @@
 #include "RenderEngine.h"
 
-#include "GeneralDefines.h"
-
-
-RenderEngine::RenderEngine() :
+RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 	m_pRoot(nullptr),
 	m_pRenderWindow(nullptr),
 	m_pSceneManager(nullptr),
@@ -12,7 +9,8 @@ RenderEngine::RenderEngine() :
 	m_pWorkspace(nullptr),
 	m_pRT(nullptr),
 	m_pSceneObjectProducer(nullptr),
-	m_bQuit(false)
+	m_bQuit(false),
+	m_pResourceManager(pResourceManager)
 {
 	m_pRT = new RenderThread(this);
 
@@ -112,14 +110,7 @@ void RenderEngine::RT_SetupDefaultCompositor()
 
 void RenderEngine::RT_LoadDefaultResources()
 {
-	Ogre::ConfigFile cf;
-	cf.load(RESOURCE_CONFIG);
-
-	LoadConfigSections(cf);
-
-	LoadHlms(cf);
-
-	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups(true);
+	m_pResourceManager->LoadDefaultResources();
 }
 
 void RenderEngine::RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos)
@@ -127,120 +118,8 @@ void RenderEngine::RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos)
 	actor->SO_SetPosition(pos);
 }
 
-void RenderEngine::LoadConfigSections(Ogre::ConfigFile& cf) 
-{
-	// Go through all sections & settings in the file
-	Ogre::ConfigFile::SectionIterator seci = cf.getSectionIterator();
-
-	Ogre::String secName, typeName, archName;
-	while (seci.hasMoreElements())
-	{
-		secName = seci.peekNextKey();
-		Ogre::ConfigFile::SettingsMultiMap* settings = seci.getNext();
-
-		if (secName != "Hlms")
-		{
-			Ogre::ConfigFile::SettingsMultiMap::iterator i;
-			for (i = settings->begin(); i != settings->end(); ++i)
-			{
-				typeName = i->first;
-				archName = i->second;
-				Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-					archName, typeName, secName);
-			}
-		}
-	}
-}
-
-void RenderEngine::LoadHlms(Ogre::ConfigFile& cf)
-{
-	// Load hlms (high level material system) files
-	Ogre::String rootHlmsFolder = GetRootHlmsFolder(cf);
-	RegisterHlms(rootHlmsFolder);
-
-}
-
-Ogre::String RenderEngine::GetRootHlmsFolder(Ogre::ConfigFile& cf)
-{
-	// Load hlms (high level material system) files
-	Ogre::String rootHlmsFolder = cf.getSetting("DoNotUseAsResource", "Hlms", "");
-
-	if (rootHlmsFolder.empty())
-		rootHlmsFolder = "./";
-	else if (*(rootHlmsFolder.end() - 1) != '/')
-		rootHlmsFolder += "/";
-	return rootHlmsFolder;
-}
-
-void RenderEngine::RegisterHlms(Ogre::String rootHlmsFolder)
-{
-	//For retrieval of the paths to the different folders needed
-	Ogre::String mainFolderPath;
-	Ogre::StringVector libraryFoldersPaths;
-
-	Ogre::ArchiveManager& archiveManager = Ogre::ArchiveManager::getSingleton();
-
-	//Create & Register HlmsUnlit
-		//Get the path to all the subdirectories used by HlmsUnlit
-		Ogre::HlmsUnlit::getDefaultPaths(mainFolderPath, libraryFoldersPaths);
-		Ogre::Archive* archiveUnlit = archiveManager.load(rootHlmsFolder + mainFolderPath,
-			"FileSystem", true);
-
-		Ogre::ArchiveVec archiveUnlitLibraryFolders;
-		GetHlmArchiveVec(archiveUnlitLibraryFolders, rootHlmsFolder, libraryFoldersPaths);
-
-		//Create and register the unlit Hlms
-		Ogre::HlmsUnlit* hlmsUnlit = OGRE_NEW Ogre::HlmsUnlit(archiveUnlit, &archiveUnlitLibraryFolders);
-		Ogre::Root::getSingleton().getHlmsManager()->registerHlms(hlmsUnlit);
-	
-		//Create & Register HlmsPbs
-		//Do the same for HlmsPbs:
-		Ogre::HlmsPbs::getDefaultPaths(mainFolderPath, libraryFoldersPaths);
-		Ogre::Archive* archivePbs = archiveManager.load(rootHlmsFolder + mainFolderPath,
-			"FileSystem", true);
-
-		//Get the library archive(s)
-		Ogre::ArchiveVec archivePbsLibraryFolders;
-		GetHlmArchiveVec(archivePbsLibraryFolders, rootHlmsFolder, libraryFoldersPaths);
-
-		//Create and register
-		Ogre::HlmsPbs* hlmsPbs = OGRE_NEW Ogre::HlmsPbs(archivePbs, &archivePbsLibraryFolders);
-		Ogre::Root::getSingleton().getHlmsManager()->registerHlms(hlmsPbs);
-	
-		SetHlmsTextureBufferSize(hlmsPbs, hlmsUnlit);
-}
-
-void RenderEngine::GetHlmArchiveVec(Ogre::ArchiveVec& archiveVec, Ogre::String rootHlmsFolder, Ogre::StringVector libraryFoldersPaths)
-{
-	//Get the library archive(s)
-	Ogre::ArchiveManager& archiveManager = Ogre::ArchiveManager::getSingleton();
-	Ogre::StringVector::const_iterator libraryFolderPathIt = libraryFoldersPaths.begin();;
-	Ogre::StringVector::const_iterator libraryFolderPathEn = libraryFoldersPaths.end();;
-	while (libraryFolderPathIt != libraryFolderPathEn)
-	{
-		Ogre::Archive* archiveLibrary =
-			archiveManager.load(rootHlmsFolder + *libraryFolderPathIt, "FileSystem", true);
-		archiveVec.push_back(archiveLibrary);
-		++libraryFolderPathIt;
-	}
-}
-
-void RenderEngine::SetHlmsTextureBufferSize(Ogre::HlmsPbs* hlmsPbs, Ogre::HlmsUnlit* hlmsUnlit)
-{
-	Ogre::RenderSystem* renderSystem = m_pRoot->getRenderSystem();
-	bool supportsNoOverwriteOnTextureBuffers;
-	renderSystem->getCustomAttribute("MapNoOverwriteOnDynamicBufferSRV", &supportsNoOverwriteOnTextureBuffers);
-
-	if (!supportsNoOverwriteOnTextureBuffers)
-	{
-		hlmsPbs->setTextureBufferDefaultSize(512 * 1024);
-		hlmsUnlit->setTextureBufferDefaultSize(512 * 1024);
-	}
-}
-
 void RenderEngine::RT_LoadOgreHead()
 {
-
 	//OgreHead = m_pSceneObjectProducer->Produce("Ogre", "ogrehead.mesh"); 
 	//OgreHead->SO_SetPosition(Ogre::Vector3(0, 0, 20));
 
@@ -251,7 +130,6 @@ void RenderEngine::RT_LoadOgreHead()
 	//Barrel = m_pSceneObjectProducer->Produce("bar", "Barrel.mesh");
 	//Barrel->SO_SetPosition(Ogre::Vector3(0, 0, 0));
 	//Barrel->SO_SetScale(10, 10, 10);
-
 }
 
 void RenderEngine::RT_SetupDefaultLight()
@@ -267,13 +145,15 @@ void RenderEngine::RT_SetupDefaultLight()
 
 void RenderEngine::RT_OscillateCamera(float time)
 {
-	//m_pCamera->setPosition(Ogre::Vector3(0, time, 15));
+	m_pCamera->move(Ogre::Vector3(time*10, 0, 0));
+	//m_pCamera->setPosition(Ogre::Vector3(150 * time * 10, 150, 150));
+	m_pCamera->lookAt(Ogre::Vector3(0, 0, 0));
 }
 
 
 SceneObject* RenderEngine::CreateSceneObject(Ogre::String actorName, Ogre::String meshName) 
 {
-	//std::lock_guard<std::mutex> lock(creation);
+	std::lock_guard<std::mutex> lock(creation);
 	return m_pSceneObjectProducer->Produce(actorName, meshName);
 
 	//return new SceneObject(*m_pSceneManager, meshName);
