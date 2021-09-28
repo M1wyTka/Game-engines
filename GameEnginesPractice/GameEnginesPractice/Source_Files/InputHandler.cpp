@@ -12,13 +12,21 @@ InputHandler::InputHandler(const std::string& strResourceRoot)
 
 	MapSymbol("a", 'A');
 	MapSymbol("d", 'D');
-	//MapSymbol("w", 'W');
+	MapSymbol("w", 'W');
+	MapSymbol("s", 'S');
+	MapSymbol("q", 'Q');
+
 	MapSymbol("left", VK_LEFT);
 	MapSymbol("right", VK_RIGHT);
-	//MapSymbol("shoot", VK_UP);
+	MapSymbol("up", VK_UP);
+	MapSymbol("down", VK_DOWN);
+	MapSymbol("shoot", 0x51);
 
 	MapCommandSymbol("GoLeft", eIC_GoLeft, "a");
 	MapCommandSymbol("GoRight", eIC_GoRight, "d");
+	MapCommandSymbol("GoUp", eIC_GoUp, "w");
+	MapCommandSymbol("GoDown", eIC_GoDown, "s");
+	MapCommandSymbol("Shoot", eIC_Shoot, "q");
 	//MapCommandSymbol("Shoot", eIC_Shoot, "w");
 
 	LoadConfiguration();

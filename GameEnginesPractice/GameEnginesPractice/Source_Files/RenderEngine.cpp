@@ -120,16 +120,17 @@ void RenderEngine::RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos)
 
 void RenderEngine::RT_LoadOgreHead()
 {
-	//OgreHead = m_pSceneObjectProducer->Produce("Ogre", "ogrehead.mesh"); 
-	//OgreHead->SO_SetPosition(Ogre::Vector3(0, 0, 20));
+	OgreHead = m_pSceneObjectProducer->Produce("Ogre", "Cube.mesh"); 
+	OgreHead->SO_SetPosition(Ogre::Vector3(0, 0, 50));
+	OgreHead->SO_SetScale(0.5, 0.5, 10);
 
-	//Cube = m_pSceneObjectProducer->Produce("cube", "Sphere.mesh");
-	//Cube->SO_SetPosition(Ogre::Vector3(0, 0, -20));
-	////Cube->SO_SetScale(0.1f, 0.1f, 0.1f);
+	Cube = m_pSceneObjectProducer->Produce("cube", "Cube.mesh");
+	Cube->SO_SetPosition(Ogre::Vector3(50, 0, 0));
+	Cube->SO_SetScale(10, 0.5, 0.5);
 
-	//Barrel = m_pSceneObjectProducer->Produce("bar", "Barrel.mesh");
-	//Barrel->SO_SetPosition(Ogre::Vector3(0, 0, 0));
-	//Barrel->SO_SetScale(10, 10, 10);
+	Barrel = m_pSceneObjectProducer->Produce("bar", "Cube.mesh");
+	Barrel->SO_SetPosition(Ogre::Vector3(0, 50, 0));
+	Barrel->SO_SetScale(0.5, 10, 0.5);
 }
 
 void RenderEngine::RT_SetupDefaultLight()
@@ -145,11 +146,16 @@ void RenderEngine::RT_SetupDefaultLight()
 
 void RenderEngine::RT_OscillateCamera(float time)
 {
-	m_pCamera->move(Ogre::Vector3(time*10, 0, 0));
+	//m_pCamera->moveRelative(Ogre::Vector3(time*10, 0, 0));
 	//m_pCamera->setPosition(Ogre::Vector3(150 * time * 10, 150, 150));
 	m_pCamera->lookAt(Ogre::Vector3(0, 0, 0));
 }
 
+void RenderEngine::RT_MoveCamera(Ogre::Vector3 pos) 
+{
+	m_pCamera->move(pos);
+	m_pCamera->lookAt(Ogre::Vector3(0, 0, 0));
+}
 
 SceneObject* RenderEngine::CreateSceneObject(Ogre::String actorName, Ogre::String meshName) 
 {

@@ -21,6 +21,7 @@ enum RenderCommand : UINT32
 	eRC_UpdateActorPosition,
 	eRC_SetupDefaultLight,
 	eRC_OscillateCamera,
+	eRC_MoveCamera,
 	eRC_BeginFrame,
 	eRC_EndFrame
 };
@@ -42,6 +43,7 @@ public:
 	void RC_SetupDefaultLight();
 	void RC_OscillateCamera(float time);
 	void RC_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos);
+	void RC_MoveCamera(Ogre::Vector3 pos);
 	void RC_BeginFrame();
 	void RC_EndFrame();
 

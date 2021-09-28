@@ -157,6 +157,14 @@ void RenderThread::ProcessCommands()
 				m_pRenderEngine->RT_OscillateCamera(time);
 				break;
 			}
+			case eRC_MoveCamera:
+			{
+				float x = ReadCommand<float>(n);
+				float y = ReadCommand<float>(n);
+				float z = ReadCommand<float>(n);
+				m_pRenderEngine->RT_MoveCamera(Ogre::Vector3(x, y, z));
+				break;
+			}
 		}
 	}
 
@@ -300,6 +308,21 @@ void RenderThread::RC_OscillateCamera(float time)
 	LOADINGCOMMAND_CRITICAL_SECTION;
 	byte* p = AddCommand(eRC_OscillateCamera, sizeof(float));
 	AddFloat(p, time);
+}
+
+void RenderThread::RC_MoveCamera(Ogre::Vector3 tVector)
+{
+	if (IsRenderThread())
+	{
+		m_pRenderEngine->RT_MoveCamera(tVector);
+		return;
+	}
+
+	LOADINGCOMMAND_CRITICAL_SECTION;
+	byte* p = AddCommand(eRC_MoveCamera, 3*sizeof(float));
+	AddFloat(p, tVector.x);
+	AddFloat(p, tVector.y);
+	AddFloat(p, tVector.z);
 }
 
 void RenderThread::RC_BeginFrame()

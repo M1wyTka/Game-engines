@@ -1,10 +1,8 @@
 #include "CelestialBody.h"
 #include "Universe.h"
 
-CelestialBody::CelestialBody(Ogre::String name)
+CelestialBody::CelestialBody() : GameObject(), m_nMass(1)
 {
-	m_nMass = 1;
-	m_bIsMovable = true;
 }
 
 CelestialBody::~CelestialBody()

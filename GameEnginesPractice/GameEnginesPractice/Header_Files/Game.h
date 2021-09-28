@@ -6,6 +6,7 @@
 #include "InputHandler.h"
 #include "GameTimer.h"
 #include "CelestialBody.h"
+#include "Bullet.h"
 #include "Universe.h"
 #include <vector>
 
@@ -29,5 +30,8 @@ private:
 	InputHandler* m_pInputHandler;
 	
 	std::vector<std::unique_ptr<CelestialBody>> solarSystem;
+	std::vector<Bullet*> bullets;
+	int t = 0;
+	int cd = 100;
 	void GenerateSolarSystem();
 };

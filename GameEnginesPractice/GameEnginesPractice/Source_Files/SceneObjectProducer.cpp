@@ -31,8 +31,6 @@ SceneObject* SceneObjectProducer::Produce(Ogre::String actorName, Ogre::String m
 	{
 		m_mpUsedMeshes.emplace(meshName, ++m_mpUsedMeshes[meshName]);
 		meshInstanceNum = m_mpUsedMeshes[meshName];
-		//m_mpUsedMeshes.insert({ meshName, meshToUse });
-		//meshToUse = m_mpUsedMeshes[meshName];
 	}
 	else
 	{
@@ -58,8 +56,7 @@ Ogre::MeshPtr SceneObjectProducer::LoadMeshModel(Ogre::String meshName, int inst
 	//Create a v2 mesh to import to, with a different name (arbitrary).
 	Ogre::MeshPtr meshToUse = Ogre::MeshManager::getSingleton().createManual(
 		v2Name, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-	/*Ogre::MeshManager::getSingleton().getByName(
-		IMPORT_NAME(meshName), Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);*/
+	
 	bool halfPosition = true;
 	bool halfUVs = true;
 	bool useQtangents = true;

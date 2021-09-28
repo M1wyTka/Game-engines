@@ -35,7 +35,7 @@ public:
 
 	RenderThread* GetRT() const { return m_pRT; }
 	SceneObject* CreateSceneObject(Ogre::String actorName, Ogre::String meshName);
-
+	std::atomic<bool> isReady;
 private:
 	bool SetOgreConfig();
 
@@ -47,6 +47,7 @@ private:
 	void RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos);
 	void RT_SetupDefaultLight();
 	void RT_OscillateCamera(float time);
+	void RT_MoveCamera(Ogre::Vector3 pos);
 
 	Ogre::Root* m_pRoot;
 	Ogre::Window* m_pRenderWindow;
@@ -62,6 +63,8 @@ private:
 
 	SceneObjectProducer* m_pSceneObjectProducer;
 	std::mutex creation; // protects m_pSceneObjectProducer
+
+	
 
 	RenderThread* m_pRT;
 
