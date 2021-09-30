@@ -8,8 +8,14 @@
 #include "CelestialBody.h"
 #include "Bullet.h"
 #include "Universe.h"
+
 #include <vector>
 
+#include "flecs.h"
+#include "GeneralSystems.h"
+#include "PhysSystems.h"
+#include "MeshSystems.h"
+#include "ControlSystems.h"
 
 class Game
 {
@@ -24,6 +30,8 @@ public:
 
 private:
 	GameTimer m_Timer;
+
+	flecs::world world;
 	RenderEngine* m_pRenderEngine;
 	FileSystem* m_pFileSystem;
 	ResourceManager* m_pResourceManager;
@@ -31,7 +39,5 @@ private:
 	
 	std::vector<std::unique_ptr<CelestialBody>> solarSystem;
 	std::vector<Bullet*> bullets;
-	int t = 0;
-	int cd = 100;
 	void GenerateSolarSystem();
 };

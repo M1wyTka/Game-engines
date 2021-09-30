@@ -165,6 +165,19 @@ void RenderThread::ProcessCommands()
 				m_pRenderEngine->RT_MoveCamera(Ogre::Vector3(x, y, z));
 				break;
 			}
+			case eRC_CreateSceneObject:
+			{
+				uint32_t index = ReadCommand<uint32_t>(n);
+				uint32_t len = ReadCommand<uint32_t>(n);
+
+				Ogre::String str;
+				str.resize(len);
+				ReadMem(n, (byte*)str.c_str(), len);
+
+				SceneObject* node = m_pRenderEngine->RT_CreateSceneObject(str, str);
+				m_deliveryQueue[m_nFrameFill][index] = node;
+				break; 
+			}
 		}
 	}
 
@@ -178,6 +191,13 @@ T RenderThread::ReadCommand(int& nIndex)
 	byte* Res = *m_Commands[m_nCurrentFrame] + nIndex;
 	nIndex += sizeof(T);
 	return *reinterpret_cast<const T*>(Res);
+}
+
+void RenderThread::ReadMem(int& nIndex, byte* dest, int sz)
+{
+	byte* Res = *m_Commands[m_nCurrentFrame] + nIndex;
+	memcpy(dest, Res, sz);
+	nIndex += sz;
 }
 
 byte* RenderThread::AddCommand(RenderCommand eRC, size_t nParamBytes)
@@ -206,6 +226,12 @@ void RenderThread::AddWTF(byte*& ptr, T TVal)
 	static_assert(std::is_trivially_copyable_v<T>);
 	*(T*)ptr = TVal;
 	ptr += sizeof(T);
+}
+
+inline void RenderThread::AddBytes(byte*& ptr, byte* copy, uint32_t sz)
+{
+	memcpy(ptr, copy, sz);
+	ptr += sz;
 }
 
 void RenderThread::RC_Init()
@@ -325,6 +351,20 @@ void RenderThread::RC_MoveCamera(Ogre::Vector3 tVector)
 	AddFloat(p, tVector.z);
 }
 
+uint32_t RenderThread::RC_CreateSceneObject(const Ogre::String& meshName)
+{
+	LOADINGCOMMAND_CRITICAL_SECTION;
+
+	static uint32_t index = 0; // TODO: redo to reusable value instead
+
+	uint32_t len = meshName.size();
+	byte* p = AddCommand(eRC_CreateSceneObject, sizeof(uint32_t) + sizeof(uint32_t) + len);
+	AddWTF(p, index);
+	AddWTF(p, len);
+	AddBytes(p, (byte*)meshName.c_str(), len);
+	return index++;
+}
+
 void RenderThread::RC_BeginFrame()
 {
 
@@ -372,4 +412,9 @@ void RenderThread::WaitForRenderThreadSignal()
 	while (m_nFlush)
 	{
 	}
+}
+
+std::map<uint32_t, void*>& RenderThread::GetDeliveryQueue() 
+{
+	return m_deliveryQueue[m_nFrameFill];
 }

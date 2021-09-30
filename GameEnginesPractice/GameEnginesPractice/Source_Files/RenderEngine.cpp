@@ -9,6 +9,7 @@ RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 	m_pWorkspace(nullptr),
 	m_pRT(nullptr),
 	m_pSceneObjectProducer(nullptr),
+	m_bIsInitialized(false),
 	m_bQuit(false),
 	m_pResourceManager(pResourceManager)
 {
@@ -120,17 +121,19 @@ void RenderEngine::RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos)
 
 void RenderEngine::RT_LoadOgreHead()
 {
-	OgreHead = m_pSceneObjectProducer->Produce("Ogre", "Cube.mesh"); 
-	OgreHead->SO_SetPosition(Ogre::Vector3(0, 0, 50));
-	OgreHead->SO_SetScale(0.5, 0.5, 10);
+	//OgreHead = m_pSceneObjectProducer->Produce("Ogre", "Cube.mesh"); 
+	//OgreHead->SO_SetPosition(Ogre::Vector3(0, 0, 50));
+	//OgreHead->SO_SetScale(0.5, 0.5, 10);
 
-	Cube = m_pSceneObjectProducer->Produce("cube", "Cube.mesh");
-	Cube->SO_SetPosition(Ogre::Vector3(50, 0, 0));
-	Cube->SO_SetScale(10, 0.5, 0.5);
+	//Cube = m_pSceneObjectProducer->Produce("cube", "Cube.mesh");
+	//Cube->SO_SetPosition(Ogre::Vector3(50, 0, 0));
+	//Cube->SO_SetScale(10, 0.5, 0.5);
 
-	Barrel = m_pSceneObjectProducer->Produce("bar", "Cube.mesh");
-	Barrel->SO_SetPosition(Ogre::Vector3(0, 50, 0));
-	Barrel->SO_SetScale(0.5, 10, 0.5);
+	//Barrel = m_pSceneObjectProducer->Produce("bar", "Cube.mesh");
+	//Barrel->SO_SetPosition(Ogre::Vector3(0, 50, 0));
+	//Barrel->SO_SetScale(0.5, 10, 0.5);
+
+	m_bIsInitialized = true;
 }
 
 void RenderEngine::RT_SetupDefaultLight()
@@ -157,7 +160,7 @@ void RenderEngine::RT_MoveCamera(Ogre::Vector3 pos)
 	m_pCamera->lookAt(Ogre::Vector3(0, 0, 0));
 }
 
-SceneObject* RenderEngine::CreateSceneObject(Ogre::String actorName, Ogre::String meshName) 
+SceneObject* RenderEngine::RT_CreateSceneObject(Ogre::String actorName, Ogre::String meshName) 
 {
 	std::lock_guard<std::mutex> lock(creation);
 	return m_pSceneObjectProducer->Produce(actorName, meshName);

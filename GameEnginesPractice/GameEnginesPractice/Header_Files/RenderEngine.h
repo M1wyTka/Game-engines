@@ -34,8 +34,10 @@ public:
 	void SetQuit(bool bQuit) { m_bQuit = bQuit; }
 
 	RenderThread* GetRT() const { return m_pRT; }
-	SceneObject* CreateSceneObject(Ogre::String actorName, Ogre::String meshName);
-	std::atomic<bool> isReady;
+	SceneObject* RT_CreateSceneObject(Ogre::String actorName, Ogre::String meshName);
+
+	bool IsInitialized() { return m_bIsInitialized; }
+
 private:
 	bool SetOgreConfig();
 
@@ -63,10 +65,9 @@ private:
 
 	SceneObjectProducer* m_pSceneObjectProducer;
 	std::mutex creation; // protects m_pSceneObjectProducer
-
-	
-
 	RenderThread* m_pRT;
+
+	bool m_bIsInitialized;
 
 	bool m_bQuit;
 };
