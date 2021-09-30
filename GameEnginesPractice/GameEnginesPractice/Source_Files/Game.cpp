@@ -65,6 +65,7 @@ bool Game::Update()
 		.set(MeshName{ Ogre::String("cube.mesh") })
 		.set(Controllable{ 5.0f });
 
+
 	world.progress();
 
 	/*for(auto& body : solarSystem)
@@ -126,7 +127,7 @@ void Game::GenerateSolarSystem()
 	Mars->SetSceneObject(m_pRenderEngine->CreateSceneObject("Mars", "Sphere.mesh"));
 	solarSystem.push_back(std::move(Mars));*/
 
-	auto ogreHeadControl = world.entity()
+	/*auto ogreHeadControl = world.entity()
 		.set(Position{ 0.f, 0.f, 0.f })
 		.set(Velocity{ 0.f, 0.f, 0.f })
 		.set(MeshName{ Ogre::String("ogrehead.mesh") })
@@ -142,7 +143,25 @@ void Game::GenerateSolarSystem()
 
 	auto Barrel = world.entity()
 		.set(Position{ 0.f, 0.f, 0.f })
-		.set(MeshName{ Ogre::String("penguin.mesh") });
+		.set(MeshName{ Ogre::String("penguin.mesh") });*/
+
+	auto sun = world.entity()
+		.set(Position{ 0.f, 0.f, 0.f })
+		.set(MeshName{ Ogre::String("penguin.mesh") })
+		.set(Velocity{ 0.f, 0.f, 0.f })
+		.set(Mass{ 50000 });
+
+	auto earth = world.entity()
+		.set(Position{ 0.f, 0.f, 50.f })
+		.set(MeshName{ Ogre::String("Sphere.mesh") })
+		.set(Velocity{ 81.91f, 0.f, 0.f })
+		.set(Mass{ 1 });
+
+	auto mars = world.entity()
+		.set(Position{ 0.f, 0.f, 100.f })
+		.set(MeshName{ Ogre::String("Sphere.mesh") })
+		.set(Velocity{ 8.17f, 0.f, 0.f })
+		.set(Mass{ 1 });
 }
 
 
