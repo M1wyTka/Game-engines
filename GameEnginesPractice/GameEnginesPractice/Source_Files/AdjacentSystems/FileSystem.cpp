@@ -1,4 +1,4 @@
-#include "FileSystem.h"
+#include "AdjacentSystems/FileSystem.h"
 
 FileSystem::FileSystem()
 {
@@ -15,6 +15,10 @@ FileSystem::FileSystem()
 	m_strMediaRoot.push_back(cNativeSlash);
 	m_strMediaRoot.append("Media");
 	m_strMediaRoot.push_back(cNativeSlash);
+
+	m_strScriptsRoot = m_strMediaRoot;
+	m_strScriptsRoot.append("Scripts");
+	m_strScriptsRoot.push_back(cNativeSlash);
 }
 
 FileSystem::~FileSystem()
@@ -24,4 +28,9 @@ FileSystem::~FileSystem()
 const std::string& FileSystem::GetMediaRoot()
 {
 	return m_strMediaRoot;
+}
+
+const std::string& FileSystem::GetScriptsRoot()
+{
+	return m_strScriptsRoot;
 }

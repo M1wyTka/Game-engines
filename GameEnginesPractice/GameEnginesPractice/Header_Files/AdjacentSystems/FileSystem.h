@@ -20,9 +20,11 @@ public:
 	~FileSystem();
 
 	const std::string& GetMediaRoot();
+	const std::string& GetScriptsRoot();
 
 private:
 	std::string m_strMediaRoot;
+	std::string m_strScriptsRoot;
 
 	Lock m_RWLock;
 };

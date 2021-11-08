@@ -3,6 +3,8 @@
 #include "Ogre.h"
 #include "OgreRoot.h"
 #include "OgreWindow.h"
+#include "Compositor/OgreCompositorWorkspace.h"
+#include "Compositor/OgreCompositorManager2.h"
 
 #include "GeneralDefines.h"
 
@@ -11,12 +13,10 @@
 
 #include "ResourceManager.h"
 
-#include "Compositor/OgreCompositorManager2.h"
-
 #include "RenderSystems/Direct3D11/OgreD3D11Plugin.h"
 
 #include "RenderThread.h"
-#include <mutex>
+#include <memory>
 
 class RenderEngine
 {
@@ -33,7 +33,7 @@ public:
 	bool GetQuit() { return m_bQuit; }
 	void SetQuit(bool bQuit) { m_bQuit = bQuit; }
 
-	RenderThread* GetRT() const { return m_pRT; }
+	RenderThread* GetRT() const { return m_pRT.get(); }
 	SceneObject* RT_CreateSceneObject(Ogre::String actorName, Ogre::String meshName);
 
 	bool IsInitialized() { return m_bIsInitialized; }
@@ -47,27 +47,23 @@ private:
 	void RT_LoadDefaultResources();
 	void RT_LoadOgreHead();
 	void RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos);
+	void RT_UpdateActorScale(SceneObject* actor, Ogre::Vector3 scale);
 	void RT_SetupDefaultLight();
 	void RT_OscillateCamera(float time);
 	void RT_MoveCamera(Ogre::Vector3 pos);
 
-	Ogre::Root* m_pRoot;
-	Ogre::Window* m_pRenderWindow;
-	Ogre::SceneManager* m_pSceneManager;
-	Ogre::Camera* m_pCamera;
-	Ogre::CompositorWorkspace* m_pWorkspace;
-	Ogre::D3D11Plugin* m_pD3D11Plugin;
-	SceneObject* OgreHead;
-	SceneObject* Cube;
-	SceneObject* Barrel;
+	std::unique_ptr<Ogre::Root> m_pRoot;
+	std::unique_ptr<Ogre::Window> m_pRenderWindow;
+	std::unique_ptr<Ogre::SceneManager> m_pSceneManager;
+	std::unique_ptr<Ogre::Camera> m_pCamera;
+	std::unique_ptr<Ogre::CompositorWorkspace> m_pWorkspace;
+	std::unique_ptr<Ogre::D3D11Plugin> m_pD3D11Plugin;
 
 	ResourceManager* m_pResourceManager;
+	std::unique_ptr<SceneObjectProducer> m_pSceneObjectProducer;
 
-	SceneObjectProducer* m_pSceneObjectProducer;
-	std::mutex creation; // protects m_pSceneObjectProducer
-	RenderThread* m_pRT;
+	std::unique_ptr<RenderThread> m_pRT;
 
 	bool m_bIsInitialized;
-
 	bool m_bQuit;
 };

@@ -1,4 +1,4 @@
-#include "RenderEngine.h"
+#include "Render/RenderEngine.h"
 
 RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 	m_pRoot(nullptr),
@@ -13,7 +13,7 @@ RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 	m_bQuit(false),
 	m_pResourceManager(pResourceManager)
 {
-	m_pRT = new RenderThread(this);
+	m_pRT = std::unique_ptr<RenderThread>(new RenderThread(this));
 
 	m_pRT->RC_Init();
 	m_pRT->RC_SetupDefaultCamera();
@@ -28,7 +28,7 @@ RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 
 RenderEngine::~RenderEngine()
 {
-	SAFE_OGRE_DELETE(m_pRoot);
+	//SAFE_OGRE_DELETE(m_pRoot);
 }
 
 bool RenderEngine::SetOgreConfig()
@@ -59,10 +59,10 @@ void RenderEngine::Update()
 
 void RenderEngine::RT_Init()
 {
-	m_pRoot = OGRE_NEW Ogre::Root();
-	m_pD3D11Plugin = OGRE_NEW Ogre::D3D11Plugin();
+	m_pRoot = std::unique_ptr<Ogre::Root>(new Ogre::Root());
+	m_pD3D11Plugin = std::unique_ptr<Ogre::D3D11Plugin>(new Ogre::D3D11Plugin());
 
-	m_pRoot->installPlugin(m_pD3D11Plugin);
+	m_pRoot->installPlugin(m_pD3D11Plugin.get());
 
 	if (!SetOgreConfig())
 	{
@@ -77,16 +77,16 @@ void RenderEngine::RT_Init()
 	Ogre::uint32 height = 720;
 	Ogre::String sTitleName = "Game Engine";
 
-	m_pRenderWindow = Ogre::Root::getSingleton().createRenderWindow(sTitleName, width, height, false);
+	m_pRenderWindow = std::unique_ptr<Ogre::Window>(Ogre::Root::getSingleton().createRenderWindow(sTitleName, width, height, false));
 
 	// Scene manager
-	m_pSceneManager = m_pRoot->createSceneManager(Ogre::SceneType::ST_GENERIC, 2);
-	m_pSceneObjectProducer = new SceneObjectProducer(m_pSceneManager);
+	m_pSceneManager = std::unique_ptr<Ogre::SceneManager>(m_pRoot->createSceneManager(Ogre::SceneType::ST_GENERIC, 2));
+	m_pSceneObjectProducer = std::unique_ptr<SceneObjectProducer>(new SceneObjectProducer(m_pSceneManager.get()));
 }
 
 void RenderEngine::RT_SetupDefaultCamera()
 {
-	m_pCamera = m_pSceneManager->createCamera("Main Camera");
+	m_pCamera = std::unique_ptr<Ogre::Camera>(m_pSceneManager->createCamera("Main Camera"));
 
 	m_pCamera->setPosition(Ogre::Vector3(150, 150, 150));
 	m_pCamera->lookAt(Ogre::Vector3(0, 0, 0));
@@ -105,8 +105,9 @@ void RenderEngine::RT_SetupDefaultCompositor()
 	{
 		compositorManager->createBasicWorkspaceDef(workspaceName, Ogre::ColourValue::Blue);
 	}
-
-	m_pWorkspace = compositorManager->addWorkspace(m_pSceneManager, m_pRenderWindow->getTexture(), m_pCamera, workspaceName, true);
+	
+	m_pWorkspace = std::unique_ptr<Ogre::CompositorWorkspace>
+					(compositorManager->addWorkspace(m_pSceneManager.get(), m_pRenderWindow->getTexture(), m_pCamera.get(), workspaceName, true));
 }
 
 void RenderEngine::RT_LoadDefaultResources()
@@ -116,23 +117,16 @@ void RenderEngine::RT_LoadDefaultResources()
 
 void RenderEngine::RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos)
 {
-	actor->SO_SetPosition(pos);
+	actor->SetPosition(pos);
+}
+
+void RenderEngine::RT_UpdateActorScale(SceneObject* actor, Ogre::Vector3 scale)
+{
+	actor->SetScale(scale.x, scale.y, scale.z);
 }
 
 void RenderEngine::RT_LoadOgreHead()
 {
-	//OgreHead = m_pSceneObjectProducer->Produce("Ogre", "Cube.mesh"); 
-	//OgreHead->SO_SetPosition(Ogre::Vector3(0, 0, 50));
-	//OgreHead->SO_SetScale(0.5, 0.5, 10);
-
-	//Cube = m_pSceneObjectProducer->Produce("cube", "Cube.mesh");
-	//Cube->SO_SetPosition(Ogre::Vector3(50, 0, 0));
-	//Cube->SO_SetScale(10, 0.5, 0.5);
-
-	//Barrel = m_pSceneObjectProducer->Produce("bar", "Cube.mesh");
-	//Barrel->SO_SetPosition(Ogre::Vector3(0, 50, 0));
-	//Barrel->SO_SetScale(0.5, 10, 0.5);
-
 	m_bIsInitialized = true;
 }
 
@@ -162,8 +156,5 @@ void RenderEngine::RT_MoveCamera(Ogre::Vector3 pos)
 
 SceneObject* RenderEngine::RT_CreateSceneObject(Ogre::String actorName, Ogre::String meshName) 
 {
-	std::lock_guard<std::mutex> lock(creation);
 	return m_pSceneObjectProducer->Produce(actorName, meshName);
-
-	//return new SceneObject(*m_pSceneManager, meshName);
 }

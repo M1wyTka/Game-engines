@@ -18,6 +18,7 @@ enum RenderCommand : UINT32
 	eRC_LoadDefaultResources,
 	eRC_LoadOgreHead,
 	eRC_UpdateActorPosition,
+	eRC_UpdateActorScale,
 	eRC_SetupDefaultLight,
 	eRC_OscillateCamera,
 	eRC_MoveCamera,
@@ -32,6 +33,9 @@ public:
 	RenderThread(RenderEngine* pRenderEngine);
 	~RenderThread();
 
+	RenderThread(const RenderThread&) = delete;
+	RenderThread& operator=(const RenderThread&) = delete;
+
 	void Start();
 	void Run();
 
@@ -43,6 +47,7 @@ public:
 	void RC_SetupDefaultLight();
 	void RC_OscillateCamera(float time);
 	void RC_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos);
+	void RC_UpdateActorScale(SceneObject* actor, Ogre::Vector3 pos);
 	void RC_MoveCamera(Ogre::Vector3 pos);
 	uint32_t RC_CreateSceneObject(const Ogre::String& meshName);
 	void RC_BeginFrame();
@@ -61,7 +66,6 @@ private:
 
 	RenderEngine* m_pRenderEngine;
 
-	//std::vector<byte> m_Commands[2];
 	MTQueue<byte> m_Commands[2];
 	int m_nCurrentFrame;
 	int m_nFrameFill;

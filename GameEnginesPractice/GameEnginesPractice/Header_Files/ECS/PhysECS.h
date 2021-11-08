@@ -12,6 +12,11 @@ struct Velocity : public Ogre::Vector3
 	using Ogre::Vector3::Vector3;
 };
 
+struct Orientation : public Ogre::Quaternion 
+{
+	using Ogre::Quaternion::Quaternion;
+};
+
 struct Mass
 {
 	float mass;

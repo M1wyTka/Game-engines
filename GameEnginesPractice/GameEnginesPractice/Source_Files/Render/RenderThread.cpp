@@ -1,4 +1,4 @@
-#include "RenderEngine.h"
+#include "Render/RenderEngine.h"
 
 // Creating Critical section interface
 std::mutex RC_CriticalSection;
@@ -144,6 +144,15 @@ void RenderThread::ProcessCommands()
 				float y = ReadCommand<float>(n);
 				float z = ReadCommand<float>(n);
 				m_pRenderEngine->RT_UpdateActorPosition(actor, Ogre::Vector3(x,y,z));
+				break;
+			}
+			case eRC_UpdateActorScale:
+			{
+				SceneObject* actor = ReadCommand<SceneObject*>(n);
+				float xScale = ReadCommand<float>(n);
+				float yScale = ReadCommand<float>(n);
+				float zScale = ReadCommand<float>(n);
+				m_pRenderEngine->RT_UpdateActorScale(actor, Ogre::Vector3(xScale, yScale, zScale));
 				break;
 			}
 			case eRC_SetupDefaultLight:
@@ -309,6 +318,23 @@ void RenderThread::RC_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos)
 	AddFloat(p, pos.x);
 	AddFloat(p, pos.y);
 	AddFloat(p, pos.z);
+}
+
+void RenderThread::RC_UpdateActorScale(SceneObject* actor, Ogre::Vector3 scale)
+{
+	if (IsRenderThread())
+	{
+		m_pRenderEngine->RT_UpdateActorPosition(actor, scale);
+		return;
+	}
+
+	LOADINGCOMMAND_CRITICAL_SECTION;
+	size_t total = sizeof(SceneObject*) + 3 * sizeof(float);
+	byte* p = AddCommand(eRC_UpdateActorScale, total);
+	AddWTF<SceneObject*>(p, actor);
+	AddFloat(p, scale.x);
+	AddFloat(p, scale.y);
+	AddFloat(p, scale .z);
 }
 
 void RenderThread::RC_SetupDefaultLight()

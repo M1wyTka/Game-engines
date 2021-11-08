@@ -4,160 +4,115 @@
 Game::Game() :
 	m_pRenderEngine(nullptr)
 {
-	m_pFileSystem = new FileSystem();
-	m_pInputHandler = new InputHandler(m_pFileSystem->GetMediaRoot());
-	m_pResourceManager = new ResourceManager(m_pFileSystem->GetMediaRoot());
-	m_pRenderEngine = new RenderEngine(m_pResourceManager);
+	// Create ecsworld
+	m_pECSworld = std::unique_ptr<flecs::world>(new flecs::world());
+
+	// Systems
+	m_pFileSystem = std::unique_ptr<FileSystem>(new FileSystem());
+	m_pInputHandler = std::unique_ptr<InputHandler>(new InputHandler(m_pFileSystem->GetMediaRoot()));
+	m_pResourceManager = std::unique_ptr<ResourceManager>(new ResourceManager(m_pFileSystem->GetMediaRoot()));
+	m_pRenderEngine = std::unique_ptr<RenderEngine>(new RenderEngine(m_pResourceManager.get()));
+	//m_pScriptSystem = std::unique_ptr<ScriptSystem>(new ScriptSystem(m_pInputHandler.get(), m_pFileSystem->GetScriptsRoot()));
+	//m_pEntityManager = std::unique_ptr<EntityManager>(new EntityManager(m_pRenderEngine.get(), m_pScriptSystem.get(), m_pECSworld.get()));
+
+	// Create script system
 
 
-	auto inputHandler = world.entity("inputHandler")
-		.set(InputHandlerPtr{ m_pInputHandler });
-	auto renderEngine = world.entity("renderEngine")
-		.set(RenderEnginePtr{ m_pRenderEngine });
+	// Handlers
+	auto inputHandler = m_pECSworld->entity("inputHandler")
+		.set(InputHandlerPtr{ m_pInputHandler.get() });
+	auto renderEngine = m_pECSworld->entity("renderEngine")
+		.set(RenderEnginePtr{ m_pRenderEngine.get() });
 
-	LoadMeshSystems(world);
-	LoadControlSystems(world);
-	LoadPhysSystems(world);
+	// Test entities
+
+
+	LoadMeshSystems(*m_pECSworld.get());
+	LoadControlSystems(*m_pECSworld.get());
+	LoadPhysSystems(*m_pECSworld.get());
 	
 	m_Timer.Start();
 }
 
 Game::~Game()
 {
+	// I think unique_pts should do the trick
+
 }
 
 void Game::Run()
 {
 	m_Timer.Reset();
-	int i = 0;
+	bool isDone = false;
 	
 	while (true)
 	{
 		m_pRenderEngine->GetRT()->RC_BeginFrame();
 
-		
-		if(i==0) GenerateSolarSystem();
+		if (!isDone && m_pRenderEngine->IsInitialized()) 
+		{
+			GenerateSolarSystem();
+			isDone = true;
+		} 
 
 		if (m_pInputHandler)
 			m_pInputHandler->Update();
 
 		m_Timer.Tick();
-		
-		
+				
 		if(!Update())
 			break;
 
-		i++;
 		m_pRenderEngine->GetRT()->RC_EndFrame();
 	}
 }
 
 bool Game::Update()
 {
-	static float t = 0;
-	// t += m_Timer.DeltaTime();
-	t += 0.001f;
-
-	if (m_pInputHandler->GetInputState().test(eIC_GoUp))
-		auto ogreHeadControl = world.entity()
-		.set(Position{ 0.f, 10.f, 0.f })
-		.set(Velocity{ 0.f, 10.f, 0.f })
-		.set(MeshName{ Ogre::String("cube.mesh") })
-		.set(Controllable{ 5.0f });
-
-
-	world.progress();
-
-	/*for(auto& body : solarSystem)
-		body->UpdateVelocity(solarSystem, GravTimestep);
-
-	for (auto& body : solarSystem) 
-	{
-		body->UpdatePosition(GravTimestep);
-		m_pRenderEngine->GetRT()->RC_UpdateActorPosition(&body->GetActor(), body->GetPosition());
-	}
-	
-	if(m_pInputHandler->GetInputState().test(eIC_GoLeft))
-		m_pRenderEngine->GetRT()->RC_MoveCamera(Ogre::Vector3(-25.0f * GravTimestep, 0, 0));
-
-	if (m_pInputHandler->GetInputState().test(eIC_GoRight))
-		m_pRenderEngine->GetRT()->RC_MoveCamera(Ogre::Vector3(25.0f * GravTimestep, 0, 0));
-
-	if(m_pInputHandler->GetInputState().test(eIC_GoUp))
-		m_pRenderEngine->GetRT()->RC_MoveCamera(Ogre::Vector3(0, 25.0f * GravTimestep, 0));
-
-	if (m_pInputHandler->GetInputState().test(eIC_GoDown))
-		m_pRenderEngine->GetRT()->RC_MoveCamera(Ogre::Vector3(0, -25.0f * GravTimestep, 0));*/
-	
-	/*if (m_pInputHandler->GetInputState().test(eIC_Shoot))
-	{
-		SceneObject* bullet = m_pRenderEngine->CreateSceneObject("bullet", "Sphere.mesh");
-		Bullet* bul = new Bullet(Ogre::Vector3(0, 0, 0), Ogre::Vector3(5, 0, 0), true);
-		bul->SetSceneObject(bullet);
-		bullets.push_back(bul);
-	}
-	
-	for (auto& bullet : bullets)
-	{
-		bullet->Update(GravTimestep);
-		m_pRenderEngine->GetRT()->RC_UpdateActorPosition(&bullet->GetSceneObject(), bullet->GetPosition());
-	}*/
-
-	/*if (m_pInputHandler->GetInputState().test(eIC_Shoot))
-		m_pRenderEngine->CreateSceneObject()*/
-	
+	m_pECSworld->progress();
 	return true;
 }
 
 void Game::GenerateSolarSystem()
 {
 	// V = sqrt(G*M/r)
-	/*std::unique_ptr<CelestialBody> Sun = std::make_unique<CelestialBody>();
-	Sun->SetBodyParameters(50000, Ogre::Vector3(0, 0, 0), Ogre::Vector3(0, 0, 0), true);
-	Sun->SetSceneObject(m_pRenderEngine->CreateSceneObject("Sun", "Sphere.mesh"));
-	solarSystem.push_back(std::move(Sun));
-
-	std::unique_ptr<CelestialBody> Earth = std::make_unique<CelestialBody>();
-	Earth->SetBodyParameters(1, Ogre::Vector3(0, 0, 50), Ogre::Vector3(81.91f, 0, 0), true);
-	Earth->SetSceneObject(m_pRenderEngine->CreateSceneObject("Sun", "Sphere.mesh"));
-	solarSystem.push_back(std::move(Earth));
-
-	std::unique_ptr<CelestialBody> Mars = std::make_unique<CelestialBody>();
-	Mars->SetBodyParameters(1, Ogre::Vector3(0, 0, 100), Ogre::Vector3(8.17f, 0, 0), true);
-	Mars->SetSceneObject(m_pRenderEngine->CreateSceneObject("Mars", "Sphere.mesh"));
-	solarSystem.push_back(std::move(Mars));*/
-
-	/*auto ogreHeadControl = world.entity()
+	auto player = m_pECSworld->entity()
 		.set(Position{ 0.f, 0.f, 0.f })
 		.set(Velocity{ 0.f, 0.f, 0.f })
 		.set(MeshName{ Ogre::String("ogrehead.mesh") })
-		.set(Controllable { 5.0f });
+		.set(Controllable{ 5.0f })
+		.set(Scale{ 5, 5, 5 });
+	
 
-	auto xAxis = world.entity()
-		.set(Position{ 50.f, 0.f, 0.f })
-		.set(MeshName{ Ogre::String("Cube.mesh") });
+	auto xAxis = m_pECSworld->entity()
+		.set(Position{ 25.f, 0.f, 0.f })
+		.set(MeshName{ Ogre::String("Cube.mesh") })
+		.set(Scale{ 5.f, 0.3f, 0.3f });
 
-	auto Cube = world.entity()
-		.set(Position{ -50.f, 0.f, 0.f })
-		.set(MeshName{ Ogre::String("Sphere.mesh") });
+	auto yAxis = m_pECSworld->entity()
+		.set(Position{ 0.f, 25.f, 0.f })
+		.set(MeshName{ Ogre::String("Cube.mesh") })
+		.set(Scale{ 0.3f, 5.f, 0.3f });
 
-	auto Barrel = world.entity()
-		.set(Position{ 0.f, 0.f, 0.f })
-		.set(MeshName{ Ogre::String("penguin.mesh") });*/
+	auto zAxis = m_pECSworld->entity()
+		.set(Position{ 0.f, 0.f, 25.f })
+		.set(MeshName{ Ogre::String("Cube.mesh") })
+		.set(Scale{ 0.3f, 0.3f, 5.f });
 
-	auto sun = world.entity()
+
+	auto sun = m_pECSworld->entity()
 		.set(Position{ 0.f, 0.f, 0.f })
 		.set(MeshName{ Ogre::String("penguin.mesh") })
 		.set(Velocity{ 0.f, 0.f, 0.f })
 		.set(Mass{ 50000 });
 
-	auto earth = world.entity()
+	auto earth = m_pECSworld->entity()
 		.set(Position{ 0.f, 0.f, 50.f })
 		.set(MeshName{ Ogre::String("Sphere.mesh") })
 		.set(Velocity{ 81.91f, 0.f, 0.f })
 		.set(Mass{ 1 });
 
-	auto mars = world.entity()
+	auto mars = m_pECSworld->entity()
 		.set(Position{ 0.f, 0.f, 100.f })
 		.set(MeshName{ Ogre::String("Sphere.mesh") })
 		.set(Velocity{ 8.17f, 0.f, 0.f })

@@ -1,21 +1,25 @@
 #pragma once
 
-#include "RenderEngine.h"
-#include "FileSystem.h"
+#include "Render/RenderEngine.h"
+#include "AdjacentSystems/FileSystem.h"
+#include "AdjacentSystems/InputHandler.h"
+#include "AdjacentSystems/GameTimer.h"
+
 #include "ResourceManager.h"
-#include "InputHandler.h"
-#include "GameTimer.h"
+
 #include "CelestialBody.h"
 #include "Bullet.h"
 #include "Universe.h"
 
 #include <vector>
+#include <memory>
 
-#include "flecs.h"
-#include "GeneralSystems.h"
-#include "PhysSystems.h"
-#include "MeshSystems.h"
-#include "ControlSystems.h"
+#include "ECS/flecs.h"
+#include "ECS/GeneralECS.h"
+#include "ECS/PhysECS.h"
+#include "ECS/MeshECS.h"
+#include "ECS/ControlECS.h"
+
 
 class Game
 {
@@ -31,13 +35,13 @@ public:
 private:
 	GameTimer m_Timer;
 
-	flecs::world world;
-	RenderEngine* m_pRenderEngine;
-	FileSystem* m_pFileSystem;
-	ResourceManager* m_pResourceManager;
-	InputHandler* m_pInputHandler;
-	
-	std::vector<std::unique_ptr<CelestialBody>> solarSystem;
-	std::vector<Bullet*> bullets;
+	std::unique_ptr<flecs::world> m_pECSworld;
+	std::unique_ptr<RenderEngine> m_pRenderEngine;
+	std::unique_ptr<FileSystem> m_pFileSystem;
+	std::unique_ptr<ResourceManager> m_pResourceManager;
+	std::unique_ptr<InputHandler> m_pInputHandler;
+	//std::unique_ptr<ScriptSystem> m_pScriptSystem;
+	//std::unique_ptr<EntityManager> m_pEntityManager;
+
 	void GenerateSolarSystem();
 };

@@ -1,4 +1,4 @@
-#include "InputHandler.h"
+#include "AdjacentSystems/InputHandler.h"
 
 #include "Ogre.h"
 
@@ -106,4 +106,9 @@ void InputHandler::Update()
 const std::bitset<eIC_Max>& InputHandler::GetInputState() const
 {
 	return m_InputState;
+}
+
+bool InputHandler::IsCommandActive(EInputCommand inputCommand) const
+{
+	return m_InputState.test(inputCommand);
 }

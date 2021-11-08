@@ -1,6 +1,6 @@
-#include "MeshSystems.h"
+#include "ECS/MeshECS.h"
 
-void LoadMeshSystems(flecs::world& world) 
+void LoadMeshSystems(flecs::world& world)
 {
     static auto renderQuery = world.query<RenderEnginePtr>();
     LoadMeshCreationSystem(world, renderQuery);
@@ -40,9 +40,20 @@ void LoadMeshDeliverySystem(flecs::world& world, flecs::query<RenderEnginePtr>& 
                                 return;
                             SceneObject* pSceneNode = (SceneObject*)fiter->second;
                             rendEngine.ptr->GetRT()->RC_UpdateActorPosition(pSceneNode, pos);
+
                             e.set<SceneObj>(SceneObj{ pSceneNode });
                             e.remove<SceneNodeDeliveryIndex>();
                         }
+                    });
+            });
+
+    world.system<const SceneObj, const Scale>()
+        .each([&](flecs::entity e, const SceneObj& node, const Scale& sc)
+            {
+                renderQuery.each([&](RenderEnginePtr rendEngine)
+                    {
+                        rendEngine.ptr->GetRT()->RC_UpdateActorScale(node.pSceneObject, sc);
+                        e.remove<Scale>();
                     });
             });
 }
