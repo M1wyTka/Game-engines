@@ -78,6 +78,8 @@ void RenderEngine::RT_Init()
 	Ogre::String sTitleName = "Game Engine";
 
 	m_pRenderWindow = std::unique_ptr<Ogre::Window>(Ogre::Root::getSingleton().createRenderWindow(sTitleName, width, height, false));
+	m_pRenderWindow->getCustomAttribute("WINDOW", &m_pHWND);
+
 
 	// Scene manager
 	m_pSceneManager = std::unique_ptr<Ogre::SceneManager>(m_pRoot->createSceneManager(Ogre::SceneType::ST_GENERIC, 2));

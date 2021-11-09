@@ -36,6 +36,8 @@ public:
 	RenderThread* GetRT() const { return m_pRT.get(); }
 	SceneObject* RT_CreateSceneObject(Ogre::String actorName, Ogre::String meshName);
 
+	HWND GetWinHandle() { return m_pHWND; }
+
 	bool IsInitialized() { return m_bIsInitialized; }
 
 private:
@@ -63,6 +65,7 @@ private:
 	std::unique_ptr<SceneObjectProducer> m_pSceneObjectProducer;
 
 	std::unique_ptr<RenderThread> m_pRT;
+	HWND m_pHWND;
 
 	bool m_bIsInitialized;
 	bool m_bQuit;

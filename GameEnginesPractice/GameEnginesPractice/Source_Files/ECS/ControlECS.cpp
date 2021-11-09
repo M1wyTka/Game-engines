@@ -24,7 +24,11 @@ void LoadControlSystems(flecs::world& world)
                             if (input.ptr->GetInputState().test(eIC_GoUp))
                                 deltaVel += Ogre::Vector3::Vector3(0, ctr.ControllSpeed, 0);
                             //vel += deltaVel * e.delta_time();
-                            rendEngine.ptr->GetRT()->RC_MoveCamera(deltaVel * e.delta_time());
+
+                            Ogre::Vector2 pressedDeltaMouse = -input.ptr->DeltaDownMousePos() * input.ptr->GetMouseSensitivity();
+
+                            pressedDeltaMouse *= e.delta_time();
+                            rendEngine.ptr->GetRT()->RC_MoveCamera(Ogre::Vector3(pressedDeltaMouse.x, pressedDeltaMouse.y, 0));
                         });
                     };
                 });

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <windows.h>
 
-InputHandler::InputHandler(const std::string& strResourceRoot)
+InputHandler::InputHandler(const std::string& strResourceRoot) : m_pMouseSensitivity(20)
 {
 	m_strMapFilePath = strResourceRoot + "actionmap.ini";
 	std::replace(m_strMapFilePath.begin(), m_strMapFilePath.end(), '\\', '/');
@@ -20,14 +20,13 @@ InputHandler::InputHandler(const std::string& strResourceRoot)
 	MapSymbol("right", VK_RIGHT);
 	MapSymbol("up", VK_UP);
 	MapSymbol("down", VK_DOWN);
-	MapSymbol("shoot", 0x51);
+	MapSymbol("shoot", 0x51); // q
 
 	MapCommandSymbol("GoLeft", eIC_GoLeft, "a");
 	MapCommandSymbol("GoRight", eIC_GoRight, "d");
 	MapCommandSymbol("GoUp", eIC_GoUp, "w");
 	MapCommandSymbol("GoDown", eIC_GoDown, "s");
 	MapCommandSymbol("Shoot", eIC_Shoot, "q");
-	//MapCommandSymbol("Shoot", eIC_Shoot, "w");
 
 	LoadConfiguration();
 
@@ -101,6 +100,32 @@ void InputHandler::Update()
 	{
 		m_InputState.set(it.second, IsKeyDown(it.first));
 	}
+
+	if (m_pWinHandle)
+	{
+		m_pPrevMousePos = m_pCurMousePos;
+
+		GetCursorPos(&m_pMousePoint);
+		ScreenToClient(m_pWinHandle, &m_pMousePoint);
+
+		float x = float(m_pMousePoint.x);
+		float y = float(m_pMousePoint.y);
+		m_pCurMousePos = Ogre::Vector2(x, y);
+
+		m_bMouseButtonDown = GetKeyState(VK_LBUTTON) < 0;
+
+	}
+}
+
+void InputHandler::SetWinHandle(HWND window)
+{
+	m_pWinHandle = window;
+	GetCursorPos(&m_pMousePoint);
+	ScreenToClient(m_pWinHandle, &m_pMousePoint);
+
+	float x = float(m_pMousePoint.x);
+	float y = float(m_pMousePoint.y);
+	m_pCurMousePos = Ogre::Vector2(x, y);
 }
 
 const std::bitset<eIC_Max>& InputHandler::GetInputState() const
@@ -111,4 +136,25 @@ const std::bitset<eIC_Max>& InputHandler::GetInputState() const
 bool InputHandler::IsCommandActive(EInputCommand inputCommand) const
 {
 	return m_InputState.test(inputCommand);
+}
+
+Ogre::Vector2 InputHandler::MousePos() const
+{
+	return m_pCurMousePos;
+}
+
+Ogre::Vector2 InputHandler::DeltaMousePos() const
+{
+	Ogre::Vector2 diff = m_pCurMousePos - m_pPrevMousePos;
+	return Ogre::Vector2(diff.x, -diff.y);
+}
+
+Ogre::Vector2 InputHandler::DeltaDownMousePos() const
+{
+	if (m_bMouseButtonDown) 
+	{
+		return DeltaMousePos();
+	}
+	else
+		return Ogre::Vector2(0, 0);
 }

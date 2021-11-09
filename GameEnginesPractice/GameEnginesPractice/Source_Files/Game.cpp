@@ -52,6 +52,7 @@ void Game::Run()
 		if (!isDone && m_pRenderEngine->IsInitialized()) 
 		{
 			GenerateSolarSystem();
+			m_pInputHandler->SetWinHandle(m_pRenderEngine->GetWinHandle());
 			isDone = true;
 		} 
 
