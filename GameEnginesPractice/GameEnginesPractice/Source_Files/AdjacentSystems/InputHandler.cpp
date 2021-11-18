@@ -10,24 +10,10 @@ InputHandler::InputHandler(const std::string& strResourceRoot) : m_pMouseSensiti
 	m_strMapFilePath = strResourceRoot + "actionmap.ini";
 	std::replace(m_strMapFilePath.begin(), m_strMapFilePath.end(), '\\', '/');
 
-	MapSymbol("a", 'A');
-	MapSymbol("d", 'D');
-	MapSymbol("w", 'W');
-	MapSymbol("s", 'S');
-	MapSymbol("q", 'Q');
-
-	MapSymbol("left", VK_LEFT);
-	MapSymbol("right", VK_RIGHT);
-	MapSymbol("up", VK_UP);
-	MapSymbol("down", VK_DOWN);
-	MapSymbol("shoot", 0x51); // q
-
-	MapCommandSymbol("GoLeft", eIC_GoLeft, "a");
-	MapCommandSymbol("GoRight", eIC_GoRight, "d");
-	MapCommandSymbol("GoUp", eIC_GoUp, "w");
-	MapCommandSymbol("GoDown", eIC_GoDown, "s");
-	MapCommandSymbol("Shoot", eIC_Shoot, "q");
-
+	FillSymbolMap();
+	FillCommandMap();
+	FillCommandSymbolMap();
+	
 	LoadConfiguration();
 
 	Remap();
@@ -50,21 +36,27 @@ void InputHandler::MapSymbol(std::string strSymbol, size_t nSymbol)
 	m_symbolMap[strSymbol] = nSymbol;
 }
 
-void InputHandler::MapInputEvent(std::size_t nSymbol, size_t nCommand)
-{
-	m_inputEventMap[nSymbol] = nCommand;
-}
-
-void InputHandler::MapCommandSymbol(std::string strCommand, size_t nCommand, std::string strDefaultSymbol)
+void InputHandler::MapCommand(std::string strCommand, size_t nCommand) 
 {
 	m_commandMap[strCommand] = nCommand;
+}
+
+//void InputHandler::MapCommandSymbol(std::string strCommand, size_t nCommand, std::string strDefaultSymbol)
+//{
+//	MapCommand(strCommand, nCommand);
+//	m_commandSymbolMap[strCommand] = strDefaultSymbol;
+//}
+
+void InputHandler::MapCommandSymbol(std::string strCommand,std::string strDefaultSymbol)
+{
 	m_commandSymbolMap[strCommand] = strDefaultSymbol;
 }
 
 void InputHandler::LoadConfiguration()
 {
 	Ogre::ConfigFile cf;
-	cf.load(m_strMapFilePath);
+	Ogre::String separator = ":=";
+	cf.load(m_strMapFilePath, separator, true);
 
 	Ogre::ConfigFile::SectionIterator secIter = cf.getSectionIterator();
 
@@ -93,7 +85,12 @@ void InputHandler::Remap()
 	}
 }
 
-// We used int as return type just for demonstration. It should be done another way
+void InputHandler::MapInputEvent(std::size_t nSymbol, size_t nCommand)
+{
+	m_inputEventMap[nSymbol] = nCommand;
+}
+
+
 void InputHandler::Update()
 {
 	for (auto& it : m_inputEventMap)
@@ -112,8 +109,7 @@ void InputHandler::Update()
 		float y = float(m_pMousePoint.y);
 		m_pCurMousePos = Ogre::Vector2(x, y);
 
-		m_bMouseButtonDown = GetKeyState(VK_LBUTTON) < 0;
-
+		m_bMouseButtonDown = GetKeyState(LMB) < 0;
 	}
 }
 
@@ -155,6 +151,34 @@ Ogre::Vector2 InputHandler::DeltaDownMousePos() const
 	{
 		return DeltaMousePos();
 	}
-	else
-		return Ogre::Vector2(0, 0);
+	return Ogre::Vector2(0, 0);
+}
+
+void InputHandler::FillSymbolMap() 
+{
+	// Key name in file to enum mapping
+	MapSymbol("a", A_KEY);
+	MapSymbol("d", D_KEY);
+	MapSymbol("w", W_KEY);
+	MapSymbol("s", A_KEY);
+	MapSymbol("q", Q_KEY);
+}
+
+void InputHandler::FillCommandMap() 
+{
+	// Name of command to enum mapping
+	MapCommand("GoLeft", eIC_GoLeft);
+	MapCommand("GoRight", eIC_GoRight);
+	MapCommand("GoUp", eIC_GoUp);
+	MapCommand("GoDown", eIC_GoDown);
+	MapCommand("Shoot", eIC_Shoot);
+}
+
+void InputHandler::FillCommandSymbolMap()
+{
+	//MapCommandSymbol("GoLeft", "a");
+	//MapCommandSymbol("GoRight", "d");
+	//MapCommandSymbol("GoUp", "w");
+	//MapCommandSymbol("GoDown", "s");
+	//MapCommandSymbol("Shoot", "q");
 }

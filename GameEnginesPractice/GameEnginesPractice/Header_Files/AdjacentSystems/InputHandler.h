@@ -30,9 +30,15 @@ private:
 
 	bool IsKeyDown(size_t vk_key);
 
+	void FillSymbolMap();
+	void FillCommandMap();
+	void FillCommandSymbolMap();
+
 	void MapSymbol(std::string strSymbol, size_t nSymbol);
 	void MapInputEvent(std::size_t nSymbol, size_t nCommand);
-	void MapCommandSymbol(std::string strCommand, size_t nCommand, std::string strDefaultSymbol);
+	void MapCommand(std::string strCommand, size_t nCommand);
+	void MapCommandSymbol(std::string strCommand, std::string strDefaultSymbol);
+	//void MapCommandSymbol(std::string strCommand, size_t nCommand, std::string strDefaultSymbol);
 	void Remap();
 
 	std::string m_strMapFilePath;

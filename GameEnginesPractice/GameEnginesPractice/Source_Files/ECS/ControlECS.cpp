@@ -23,7 +23,7 @@ void LoadControlSystems(flecs::world& world)
                                 deltaVel -= Ogre::Vector3::Vector3(0, ctr.ControllSpeed, 0);
                             if (input.ptr->GetInputState().test(eIC_GoUp))
                                 deltaVel += Ogre::Vector3::Vector3(0, ctr.ControllSpeed, 0);
-                            //vel += deltaVel * e.delta_time();
+                            vel += deltaVel * e.delta_time();
 
                             Ogre::Vector2 pressedDeltaMouse = -input.ptr->DeltaDownMousePos() * input.ptr->GetMouseSensitivity();
 
