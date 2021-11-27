@@ -1,71 +1,78 @@
 #include "ECS/MeshECS.h"
+#include "function2.hpp"
+#include "ECS/KinematicsECS.h"
 
 void LoadMeshSystems(flecs::world& world)
 {
     static auto renderQuery = world.query<RenderEnginePtr>();
     LoadMeshCreationSystem(world, renderQuery);
-    LoadMeshDeliverySystem(world, renderQuery);
     LoadMeshPositionsUpdateSystem(world, renderQuery);
 }
 
 void LoadMeshCreationSystem(flecs::world& world, flecs::query<RenderEnginePtr>& renderQuery)
 {
-    world.system<const MeshName>()
-        .each([&](flecs::entity e, const MeshName& nm)
+    world.system<const MeshName, const Position, const Rotation, const Scale>().kind(flecs::PreUpdate)
+        .each([&](flecs::entity e, const MeshName& nm, const Position& pos, const Rotation& rot, const Scale& sc)
             {
                 renderQuery.each([&](RenderEnginePtr rendEngine)
                     {
                         if (rendEngine.ptr->IsInitialized())
-                        {
-                            uint32_t index = rendEngine.ptr->GetRT()->RC_CreateSceneObject(nm.name);
-                            e.set(SceneNodeDeliveryIndex{ index });
-                            e.remove<MeshName>();
-                        }
-                    });
-            });
-}
-
-void LoadMeshDeliverySystem(flecs::world& world, flecs::query<RenderEnginePtr>& renderQuery)
-{
-    world.system<const SceneNodeDeliveryIndex, const Position>()
-        .each([&](flecs::entity e, const SceneNodeDeliveryIndex& delivery_index, const Position& pos)
-            {
-                renderQuery.each([&](RenderEnginePtr rendEngine)
-                    {
-                        if (rendEngine.ptr->IsInitialized())
-                        {
-                            std::map<uint32_t, void*> delivery = rendEngine.ptr->GetRT()->GetDeliveryQueue();
-                            auto fiter = delivery.find(delivery_index.idx);
-                            if (fiter == delivery.end())
-                                return;
-                            SceneObject* pSceneNode = (SceneObject*)fiter->second;
-                            rendEngine.ptr->GetRT()->RC_UpdateActorPosition(pSceneNode, pos);
-
-                            e.set<SceneObj>(SceneObj{ pSceneNode });
-                            e.remove<SceneNodeDeliveryIndex>();
-                        }
-                    });
-            });
-
-    world.system<const SceneObj, const Scale>()
-        .each([&](flecs::entity e, const SceneObj& node, const Scale& sc)
-            {
-                renderQuery.each([&](RenderEnginePtr rendEngine)
-                    {
-                        rendEngine.ptr->GetRT()->RC_UpdateActorScale(node.pSceneObject, sc);
-                        e.remove<Scale>();
+                            rendEngine.ptr->GetRT()->RC_LambdaAction([=] {
+                                SceneObject* temp = rendEngine.ptr->RT_CreateSceneObject(nm.name, nm.name);
+                                temp->SetPosition(pos.val);
+                                temp->Rotate(rot.val);
+                                temp->SetScale(sc.val);
+                                e.set<SceneObj>(SceneObj{ temp });
+                                e.remove<MeshName>();
+                            });
                     });
             });
 }
 
 void LoadMeshPositionsUpdateSystem(flecs::world& world, flecs::query<RenderEnginePtr>& renderQuery)
 {
-    world.system<SceneObj, const Position>()
-        .each([&](SceneObj& scene_node, const Position& pos)
+    world.system<SceneObj, const Position, const DeltaPos>()
+        .kind(flecs::OnStore)
+        .iter([&](flecs::iter& it, SceneObj* sceneNodes, const Position* pos, const DeltaPos* delta)
+            {
+                renderQuery.each([&](RenderEnginePtr rendEngine)
+                    {   
+                        rendEngine.ptr->GetRT()->RC_LambdaAction([=] {
+                            for (int i : it)
+                            {
+                                sceneNodes[i].pSceneObject->Translate(delta[i].val);
+                            }
+                        });
+                    });
+            });
+
+    world.system<SceneObj, const DeltaRotation>()
+        .kind(flecs::PreStore)
+        .iter([&](flecs::iter& it, SceneObj* sceneNodes, const DeltaRotation* delta)
             {
                 renderQuery.each([&](RenderEnginePtr rendEngine)
                     {
-                        rendEngine.ptr->GetRT()->RC_UpdateActorPosition(scene_node.pSceneObject, pos);
+                        rendEngine.ptr->GetRT()->RC_LambdaAction([=] {
+                                for (int i : it)
+                                {
+                                    sceneNodes[i].pSceneObject->SetOrientation(delta[i].val);
+                                }
+                            });
+                    });
+            });
+
+    world.system<SceneObj, const DeltaScale>()
+        .kind(flecs::PreStore)
+        .iter([&](flecs::iter& it, SceneObj* sceneNodes, const DeltaScale* delta)
+            {
+                renderQuery.each([&](RenderEnginePtr rendEngine)
+                    {
+                        rendEngine.ptr->GetRT()->RC_LambdaAction([=] {
+                                for (int i : it)
+                                {
+                                    sceneNodes[i].pSceneObject->SetScale(delta[i].val);
+                                }
+                            });
                     });
             });
 }

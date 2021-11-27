@@ -13,14 +13,16 @@ public:
 	~SceneObject();
 
 	void SetPosition(Ogre::Vector3 newPos);
+	void Translate(Ogre::Vector3 offset);
 	Ogre::Vector3 GetPosition() const;
 
-	void SetScale(Ogre::Real x, Ogre::Real y, Ogre::Real z);
+	void SetScale(Ogre::Vector3 newScale);
 	Ogre::Vector3 GetScale() const;
 
 	Ogre::String GetName() const;
 
 	void SetOrientation(Ogre::Quaternion orientation);
+	void Rotate(Ogre::Quaternion rotation);
 	Ogre::Quaternion GetOrientation() const;
 	
 private:

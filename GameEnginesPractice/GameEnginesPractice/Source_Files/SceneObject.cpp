@@ -10,9 +10,9 @@ SceneObject::~SceneObject()
 {
 }
 
-void SceneObject::SetScale(Ogre::Real x, Ogre::Real y, Ogre::Real z)
+void SceneObject::SetScale(Ogre::Vector3 newScale)
 {
-	m_pSceneNode->scale(x, y, z);
+	m_pSceneNode->scale(newScale);
 }
 
 void SceneObject::SetPosition(Ogre::Vector3 newPos)
@@ -20,9 +20,19 @@ void SceneObject::SetPosition(Ogre::Vector3 newPos)
 	m_pSceneNode->setPosition(newPos);
 }
 
+void SceneObject::Translate(Ogre::Vector3 offset)
+{
+	m_pSceneNode->translate(offset);
+}
+
 void SceneObject::SetOrientation(Ogre::Quaternion newOrientation) 
 {
 	m_pSceneNode->setOrientation(newOrientation);
+}
+
+void SceneObject::Rotate(Ogre::Quaternion rotation)
+{
+	m_pSceneNode->rotate(rotation);
 }
 
 Ogre::Vector3 SceneObject::GetScale() const

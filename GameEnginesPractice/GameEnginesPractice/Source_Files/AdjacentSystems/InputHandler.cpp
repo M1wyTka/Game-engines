@@ -160,7 +160,7 @@ void InputHandler::FillSymbolMap()
 	MapSymbol("a", A_KEY);
 	MapSymbol("d", D_KEY);
 	MapSymbol("w", W_KEY);
-	MapSymbol("s", A_KEY);
+	MapSymbol("s", S_KEY);
 	MapSymbol("q", Q_KEY);
 }
 

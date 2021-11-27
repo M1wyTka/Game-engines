@@ -37,6 +37,7 @@ public:
 	SceneObject* RT_CreateSceneObject(Ogre::String actorName, Ogre::String meshName);
 
 	HWND GetWinHandle() { return m_pHWND; }
+	Ogre::Camera* GetMainCamera() { return m_pCamera.get(); }
 
 	bool IsInitialized() { return m_bIsInitialized; }
 
@@ -48,11 +49,7 @@ private:
 	void RT_SetupDefaultCompositor();
 	void RT_LoadDefaultResources();
 	void RT_LoadOgreHead();
-	void RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos);
-	void RT_UpdateActorScale(SceneObject* actor, Ogre::Vector3 scale);
 	void RT_SetupDefaultLight();
-	void RT_OscillateCamera(float time);
-	void RT_MoveCamera(Ogre::Vector3 pos);
 
 	std::unique_ptr<Ogre::Root> m_pRoot;
 	std::unique_ptr<Ogre::Window> m_pRenderWindow;

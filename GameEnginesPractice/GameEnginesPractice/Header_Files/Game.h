@@ -19,7 +19,7 @@
 #include "ECS/PhysECS.h"
 #include "ECS/MeshECS.h"
 #include "ECS/ControlECS.h"
-
+#include "ECS/KinematicsECS.h"
 
 class Game
 {

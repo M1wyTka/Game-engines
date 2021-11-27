@@ -30,6 +30,7 @@ Game::Game() :
 	LoadMeshSystems(*m_pECSworld.get());
 	LoadControlSystems(*m_pECSworld.get());
 	LoadPhysSystems(*m_pECSworld.get());
+	LoadKinematicsSystems(*m_pECSworld.get());
 	
 	m_Timer.Start();
 }
@@ -78,46 +79,72 @@ void Game::GenerateSolarSystem()
 {
 	// V = sqrt(G*M/r)
 	auto player = m_pECSworld->entity()
-		.set(Position{ 0.f, 0.f, 0.f })
-		.set(Velocity{ 0.f, 0.f, 0.f })
+		.set(Position{ Ogre::Vector3(0.f, 0.f, 0.f) })
+		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
+		.set(Scale{ Ogre::Vector3(5, 5, 5) })
 		.set(MeshName{ Ogre::String("ogrehead.mesh") })
+
 		.set(Controllable{ 5.0f })
-		.set(Scale{ 5, 5, 5 });
+		.set(DeltaPos{});
 	
 
 	auto xAxis = m_pECSworld->entity()
-		.set(Position{ 25.f, 0.f, 0.f })
-		.set(MeshName{ Ogre::String("Cube.mesh") })
-		.set(Scale{ 5.f, 0.3f, 0.3f });
-
+		.set(Position{ Ogre::Vector3(25.f, 0.f, 0.f) })
+		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
+		.set(Scale{ Ogre::Vector3(5.f, 0.3f, 0.3f) })
+		.set(MeshName{ Ogre::String("Cube.mesh") });
+		//.set(DeltaKinematics{});
+	
 	auto yAxis = m_pECSworld->entity()
-		.set(Position{ 0.f, 25.f, 0.f })
-		.set(MeshName{ Ogre::String("Cube.mesh") })
-		.set(Scale{ 0.3f, 5.f, 0.3f });
+		.set(Position{ Ogre::Vector3(0.f, 25.f, 0.f) })
+		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
+		.set(Scale{ Ogre::Vector3(0.3f, 5.f, 0.3f) })
+		.set(MeshName{ Ogre::String("Cube.mesh") });
+		//.set(DeltaKinematics{});
 
 	auto zAxis = m_pECSworld->entity()
-		.set(Position{ 0.f, 0.f, 25.f })
-		.set(MeshName{ Ogre::String("Cube.mesh") })
-		.set(Scale{ 0.3f, 0.3f, 5.f });
+		.set(Position{ Ogre::Vector3(0.f, 0.f, 25.f) })
+		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
+		.set(Scale{ Ogre::Vector3(0.3f, 0.3f, 5.f) })
+		.set(MeshName{ Ogre::String("Cube.mesh") });
+		//.set(DeltaKinematics{});
 
 
 	auto sun = m_pECSworld->entity()
-		.set(Position{ 0.f, 0.f, 0.f })
+		.set(Position{ Ogre::Vector3(0.f, 0.f, 0.f) })
+		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
+		.set(Scale{ Ogre::Vector3(1.f, 1.f, 1.f) })
 		.set(MeshName{ Ogre::String("penguin.mesh") })
+
 		.set(Velocity{ 0.f, 0.f, 0.f })
-		.set(Mass{ 50000 });
+		.set(Mass{ 50000 })
+		.set(DeltaPos{ Ogre::Vector3(0.f, 0.f, 0.f) });
 
 	auto earth = m_pECSworld->entity()
-		.set(Position{ 0.f, 0.f, 50.f })
+		.set(Position{ Ogre::Vector3(0.f, 0.f, 50.f) })
+		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
+		.set(Scale{ Ogre::Vector3(1.f, 1.f, 1.f) })
 		.set(MeshName{ Ogre::String("Sphere.mesh") })
-		.set(Velocity{ 81.91f, 0.f, 0.f })
-		.set(Mass{ 1 });
+		
+		.set(Velocity{ 51.67f, 0.f, 0.f })
+		.set(Mass{ 1 })
+		.set(DeltaPos{ Ogre::Vector3(0.f, 0.f, 0.f) });
 
 	auto mars = m_pECSworld->entity()
-		.set(Position{ 0.f, 0.f, 100.f })
+		.set(Position{ Ogre::Vector3(0.f, 0.f, 100.f) })
+		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
+		.set(Scale{ Ogre::Vector3(1.f, 1.f, 1.f) })
 		.set(MeshName{ Ogre::String("Sphere.mesh") })
+
 		.set(Velocity{ 8.17f, 0.f, 0.f })
-		.set(Mass{ 1 });
+		.set(Mass{ 1 })
+		.set(DeltaPos{ Ogre::Vector3(0.f, 0.f, 0.f) });
+
+	auto cam = m_pECSworld->entity()
+		.set(MainCameraPtr{ m_pRenderEngine->GetMainCamera() })
+		.set(Position{ m_pRenderEngine->GetMainCamera()->getPosition() } )
+		.set(Controllable{ 5.0f })
+		.set(DeltaPos{ Ogre::Vector3(0.f, 0.f, 0.f) });
 }
 
 

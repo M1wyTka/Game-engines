@@ -15,14 +15,16 @@ RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 {
 	m_pRT = std::unique_ptr<RenderThread>(new RenderThread(this));
 
-	m_pRT->RC_Init();
-	m_pRT->RC_SetupDefaultCamera();
-	m_pRT->RC_SetupDefaultCompositor();
-	m_pRT->RC_LoadDefaultResources();
+	m_pRT->RC_LambdaAction([this] {
+		RT_Init();
+		RT_SetupDefaultCamera();
+		RT_SetupDefaultCompositor();
+		RT_LoadDefaultResources();
+		RT_SetupDefaultLight();
+		RT_LoadOgreHead();
+	});
 
-	m_pRT->RC_LoadOgreHead();
-	m_pRT->RC_SetupDefaultLight();
-
+	
 	m_pRT->Start();
 }
 
@@ -117,16 +119,6 @@ void RenderEngine::RT_LoadDefaultResources()
 	m_pResourceManager->LoadDefaultResources();
 }
 
-void RenderEngine::RT_UpdateActorPosition(SceneObject* actor, Ogre::Vector3 pos)
-{
-	actor->SetPosition(pos);
-}
-
-void RenderEngine::RT_UpdateActorScale(SceneObject* actor, Ogre::Vector3 scale)
-{
-	actor->SetScale(scale.x, scale.y, scale.z);
-}
-
 void RenderEngine::RT_LoadOgreHead()
 {
 	m_bIsInitialized = true;
@@ -141,19 +133,6 @@ void RenderEngine::RT_SetupDefaultLight()
 	light->setPowerScale(Ogre::Math::PI); //Since we don't do HDR, counter the PBS' division by PI
 	light->setType(Ogre::Light::LT_DIRECTIONAL);
 	light->setDirection(Ogre::Vector3(-1, -1, -1).normalisedCopy());
-}
-
-void RenderEngine::RT_OscillateCamera(float time)
-{
-	//m_pCamera->moveRelative(Ogre::Vector3(time*10, 0, 0));
-	//m_pCamera->setPosition(Ogre::Vector3(150 * time * 10, 150, 150));
-	m_pCamera->lookAt(Ogre::Vector3(0, 0, 0));
-}
-
-void RenderEngine::RT_MoveCamera(Ogre::Vector3 pos) 
-{
-	m_pCamera->move(pos);
-	m_pCamera->lookAt(Ogre::Vector3(0, 0, 0));
 }
 
 SceneObject* RenderEngine::RT_CreateSceneObject(Ogre::String actorName, Ogre::String meshName) 
