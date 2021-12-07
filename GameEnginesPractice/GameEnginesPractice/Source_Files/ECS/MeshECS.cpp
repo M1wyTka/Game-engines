@@ -1,5 +1,5 @@
 #include "ECS/MeshECS.h"
-#include "function2.hpp"
+#include "function2/function2.hpp"
 #include "ECS/KinematicsECS.h"
 
 void LoadMeshSystems(flecs::world& world)

@@ -1,10 +1,9 @@
 #include "ResourceManager.h"
 
 
-ResourceManager::ResourceManager(const std::string& strResourceRoot) : 
-								m_strResourceRoot(strResourceRoot)
+ResourceManager::ResourceManager(FileSystem* fileSys) : m_pFileSystem(fileSys)
 {
-
+	m_strResourceRoot = m_pFileSystem->GetMediaRoot();
 }
 
 ResourceManager::~ResourceManager()
@@ -15,7 +14,7 @@ ResourceManager::~ResourceManager()
 void ResourceManager::LoadDefaultResources()
 {
 	Ogre::ConfigFile cf;
-	cf.load(RESOURCE_CONFIG);
+	cf.load(m_strResourceRoot + m_strResourceConfigFile);
 
 	LoadConfigSections(cf);
 
@@ -41,7 +40,7 @@ void ResourceManager::LoadConfigSections(Ogre::ConfigFile& cf)
 			for (i = settings->begin(); i != settings->end(); ++i)
 			{
 				typeName = i->first;
-				archName = i->second;
+				archName = m_pFileSystem->JoinPaths(m_strResourceRoot, i->second);
 				Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
 					archName, typeName, secName);
 			}
@@ -52,8 +51,8 @@ void ResourceManager::LoadConfigSections(Ogre::ConfigFile& cf)
 void ResourceManager::LoadHlms(Ogre::ConfigFile& cf)
 {
 	// Load hlms (high level material system) files
-	Ogre::String rootHlmsFolder = GetRootHlmsFolder(cf);
-	RegisterHlms(rootHlmsFolder);
+	//Ogre::String rootHlmsFolder = m_pFileSystem->JoinPaths(m_strResourceRoot, GetRootHlmsFolder(cf));
+	RegisterHlms(m_strResourceRoot);
 }
 
 Ogre::String ResourceManager::GetRootHlmsFolder(Ogre::ConfigFile& cf)

@@ -2,35 +2,25 @@
 
 FileSystem::FileSystem()
 {
-	constexpr char cNativeSlash = static_cast<char>(e_cNativeSlash);
-	const std::string cNativeDoubleDot = "..";
-	// ../../../../Media/
-	m_strMediaRoot = "..";
-	m_strMediaRoot.push_back(cNativeSlash);
-	m_strMediaRoot.append(cNativeDoubleDot);
-	m_strMediaRoot.push_back(cNativeSlash);
-	m_strMediaRoot.append(cNativeDoubleDot);
-	m_strMediaRoot.push_back(cNativeSlash);
-	m_strMediaRoot.append(cNativeDoubleDot);
-	m_strMediaRoot.push_back(cNativeSlash);
-	m_strMediaRoot.append("Media");
-	m_strMediaRoot.push_back(cNativeSlash);
-
-	m_strScriptsRoot = m_strMediaRoot;
-	m_strScriptsRoot.append("Scripts");
-	m_strScriptsRoot.push_back(cNativeSlash);
 }
 
 FileSystem::~FileSystem()
 {
 }
 
-const std::string& FileSystem::GetMediaRoot()
+const std::string FileSystem::GetMediaRoot()
 {
-	return m_strMediaRoot;
+	return m_pMediaRoot.string();
 }
 
-const std::string& FileSystem::GetScriptsRoot()
+const std::string FileSystem::GetScriptsRoot()
 {
-	return m_strScriptsRoot;
+	return (m_pMediaRoot / m_pScriptsRoot).string();
+}
+
+const std::string FileSystem::JoinPaths(const std::string& strA, const std::string& strB) 
+{
+	std::filesystem::path A = std::filesystem::path(strA).make_preferred();
+	std::filesystem::path B = std::filesystem::path(strB).make_preferred();
+	return  (A / B).string();
 }

@@ -7,6 +7,7 @@ enum EInputCommand : size_t
 	eIC_GoUp,
 	eIC_GoDown,
 	eIC_Shoot,
+	eIC_Faster,
 
 	eIC_Max
 };

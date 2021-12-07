@@ -18,3 +18,5 @@ struct CameraPosition : public Ogre::Vector3
 };
 
 void LoadControlSystems(flecs::world& World);
+
+void GetWASDVector(InputHandler* input, Ogre::Vector2 &vec);

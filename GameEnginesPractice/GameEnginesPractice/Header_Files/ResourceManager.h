@@ -4,18 +4,24 @@
 #include "GeneralDefines.h"
 
 #include "OgreHlms.h"
-#include "Hlms/Unlit/OgreHlmsUnlit.h"
-#include "Hlms/Pbs/OgreHlmsPbs.h"
+#include "OgreHlmsUnlit.h"
+#include "OgreHlmsPbs.h"
+#include "AdjacentSystems/FileSystem.h"
 
 class ResourceManager
 {
 public:
-	ResourceManager(const std::string& strResourceRoot);
+	ResourceManager(FileSystem* fileSys);
 	~ResourceManager();
 
 	void LoadDefaultResources();
 
 private:
+
+	inline static const std::string m_strResourceConfigFile = "resources.cfg";
+	
+	FileSystem* m_pFileSystem;
+
 	void LoadConfigSections(Ogre::ConfigFile& cf);
 	void LoadHlms(Ogre::ConfigFile& cf);
 	Ogre::String GetRootHlmsFolder(Ogre::ConfigFile& cf);

@@ -31,6 +31,7 @@ public:
 
 	void Run();
 	bool Update();
+	bool UpdateAllSystems();
 
 private:
 	GameTimer m_Timer;

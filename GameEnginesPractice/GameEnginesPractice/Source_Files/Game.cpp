@@ -10,7 +10,7 @@ Game::Game() :
 	// Systems
 	m_pFileSystem = std::unique_ptr<FileSystem>(new FileSystem());
 	m_pInputHandler = std::unique_ptr<InputHandler>(new InputHandler(m_pFileSystem->GetMediaRoot()));
-	m_pResourceManager = std::unique_ptr<ResourceManager>(new ResourceManager(m_pFileSystem->GetMediaRoot()));
+	m_pResourceManager = std::unique_ptr<ResourceManager>(new ResourceManager(m_pFileSystem.get()));
 	m_pRenderEngine = std::unique_ptr<RenderEngine>(new RenderEngine(m_pResourceManager.get()));
 	//m_pScriptSystem = std::unique_ptr<ScriptSystem>(new ScriptSystem(m_pInputHandler.get(), m_pFileSystem->GetScriptsRoot()));
 	//m_pEntityManager = std::unique_ptr<EntityManager>(new EntityManager(m_pRenderEngine.get(), m_pScriptSystem.get(), m_pECSworld.get()));
@@ -44,29 +44,51 @@ Game::~Game()
 void Game::Run()
 {
 	m_Timer.Reset();
-	bool isDone = false;
 	
-	while (true)
+	while (!m_pRenderEngine->GetQuit())
 	{
-		m_pRenderEngine->GetRT()->RC_BeginFrame();
-
-		if (!isDone && m_pRenderEngine->IsInitialized()) 
-		{
-			GenerateSolarSystem();
-			m_pInputHandler->SetWinHandle(m_pRenderEngine->GetWinHandle());
-			isDone = true;
-		} 
-
-		if (m_pInputHandler)
-			m_pInputHandler->Update();
-
-		m_Timer.Tick();
-				
-		if(!Update())
-			break;
-
-		m_pRenderEngine->GetRT()->RC_EndFrame();
+		//	/*
+		//	Possible additions:
+		//		I have to add 2 different states for game engine: editor state and game state
+		//		Key binding system
+		//		flecs in parallel (OnUpdate part)
+		//		flecs prefabs
+		//		flecs scenes
+		//		cullings
+		//		add collision
+		//		imgui support
+		//		serialization
+		//		editor of all objects, present in window
+		//	*/
+		if (!UpdateAllSystems())
+			return;
 	}
+}
+
+bool Game::UpdateAllSystems() 
+{
+	m_pRenderEngine->GetRT()->RC_BeginFrame();
+
+	static bool isDone = false;
+	if (!isDone && m_pRenderEngine->IsInitialized())
+	{
+		GenerateSolarSystem();
+		isDone = true;
+	}
+
+	if (m_pInputHandler)
+		m_pInputHandler->Update();
+
+	m_Timer.Tick();
+
+	if (m_pInputHandler->GetQuit() || !Update())
+	{
+		m_pRenderEngine->GetRT()->RC_LambdaAction([=] {m_pRenderEngine->RT_SDLClenup(); });
+		return false;
+	}
+	m_pRenderEngine->GetRT()->RC_EndFrame();
+
+	return true;
 }
 
 bool Game::Update()
@@ -82,10 +104,7 @@ void Game::GenerateSolarSystem()
 		.set(Position{ Ogre::Vector3(0.f, 0.f, 0.f) })
 		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
 		.set(Scale{ Ogre::Vector3(5, 5, 5) })
-		.set(MeshName{ Ogre::String("ogrehead.mesh") })
-
-		.set(Controllable{ 5.0f })
-		.set(DeltaPos{});
+		.set(MeshName{ Ogre::String("ogrehead.mesh") });
 	
 
 	auto xAxis = m_pECSworld->entity()
@@ -93,22 +112,28 @@ void Game::GenerateSolarSystem()
 		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
 		.set(Scale{ Ogre::Vector3(5.f, 0.3f, 0.3f) })
 		.set(MeshName{ Ogre::String("Cube.mesh") });
-		//.set(DeltaKinematics{});
-	
+
 	auto yAxis = m_pECSworld->entity()
 		.set(Position{ Ogre::Vector3(0.f, 25.f, 0.f) })
 		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
 		.set(Scale{ Ogre::Vector3(0.3f, 5.f, 0.3f) })
 		.set(MeshName{ Ogre::String("Cube.mesh") });
-		//.set(DeltaKinematics{});
 
 	auto zAxis = m_pECSworld->entity()
 		.set(Position{ Ogre::Vector3(0.f, 0.f, 25.f) })
 		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
 		.set(Scale{ Ogre::Vector3(0.3f, 0.3f, 5.f) })
 		.set(MeshName{ Ogre::String("Cube.mesh") });
-		//.set(DeltaKinematics{});
 
+	auto planet = m_pECSworld->prefab("Planet")
+		.set(Position{ Ogre::Vector3(0.f, 0.f, 0.f) })
+		.set(Rotation{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) })
+		.set(Scale{ Ogre::Vector3(1.f, 1.f, 1.f) })
+		.set(MeshName{ Ogre::String("Sphere.mesh") })
+
+		.set(Velocity{ 0.f, 0.f, 0.f })
+		.set(Mass{ 1 })
+		.set(DeltaPos{ Ogre::Vector3(0.f, 0.f, 0.f) });;
 
 	auto sun = m_pECSworld->entity()
 		.set(Position{ Ogre::Vector3(0.f, 0.f, 0.f) })
@@ -143,7 +168,7 @@ void Game::GenerateSolarSystem()
 	auto cam = m_pECSworld->entity()
 		.set(MainCameraPtr{ m_pRenderEngine->GetMainCamera() })
 		.set(Position{ m_pRenderEngine->GetMainCamera()->getPosition() } )
-		.set(Controllable{ 5.0f })
+		.set(Controllable{ 50.f })
 		.set(DeltaPos{ Ogre::Vector3(0.f, 0.f, 0.f) });
 }
 

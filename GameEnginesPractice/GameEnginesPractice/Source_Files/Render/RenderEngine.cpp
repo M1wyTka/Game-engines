@@ -57,14 +57,28 @@ void RenderEngine::Update()
 
 	if (m_pRenderWindow->isVisible())
 		m_bQuit |= !m_pRoot->renderOneFrame();
+
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame(m_SDL_Window);
+	ImGui::NewFrame();
+
+	bool f = true;
+	//ImGui::ShowDemoWindow(&f);
+
+	// Rendering
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	SDL_GL_SwapWindow(m_SDL_Window);
 }
 
 void RenderEngine::RT_Init()
 {
 	m_pRoot = std::unique_ptr<Ogre::Root>(new Ogre::Root());
 	m_pD3D11Plugin = std::unique_ptr<Ogre::D3D11Plugin>(new Ogre::D3D11Plugin());
+	m_pGL3PlusPlugin = std::unique_ptr<Ogre::GL3PlusPlugin>(new Ogre::GL3PlusPlugin());
 
 	m_pRoot->installPlugin(m_pD3D11Plugin.get());
+	m_pRoot->installPlugin(m_pGL3PlusPlugin.get());
 
 	if (!SetOgreConfig())
 	{
@@ -74,18 +88,33 @@ void RenderEngine::RT_Init()
 
 	m_pRoot->initialise(false);
 
+	RT_InitSDL();
+
 	// Creating window
 	Ogre::uint32 width = 1280;
 	Ogre::uint32 height = 720;
 	Ogre::String sTitleName = "Game Engine";
 
-	m_pRenderWindow = std::unique_ptr<Ogre::Window>(Ogre::Root::getSingleton().createRenderWindow(sTitleName, width, height, false));
-	m_pRenderWindow->getCustomAttribute("WINDOW", &m_pHWND);
+	Ogre::NameValuePairList params;
+	params.insert(std::make_pair("title", sTitleName));
+	params.insert(std::make_pair("gamma", "true"));
+	params.insert(std::make_pair("FSAA", "false"));
+	params.insert(std::make_pair("vsync", "false"));
 
+	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
+	SDL_GetWindowWMInfo(m_SDL_Window, &info);
+
+	params["externalWindowHandle"] = Ogre::StringConverter::toString(reinterpret_cast<size_t>(info.info.win.window));
+	params["externalGLContent"] = Ogre::StringConverter::toString(reinterpret_cast<size_t>(info.info.win.hdc));
+	params["externalGLControl"] = Ogre::String("True");
+	
+	m_pRenderWindow = std::unique_ptr<Ogre::Window>(Ogre::Root::getSingleton().createRenderWindow(sTitleName, width, height, false, &params));
 
 	// Scene manager
 	m_pSceneManager = std::unique_ptr<Ogre::SceneManager>(m_pRoot->createSceneManager(Ogre::SceneType::ST_GENERIC, 2));
 	m_pSceneObjectProducer = std::unique_ptr<SceneObjectProducer>(new SceneObjectProducer(m_pSceneManager.get()));
+
 }
 
 void RenderEngine::RT_SetupDefaultCamera()
@@ -138,4 +167,51 @@ void RenderEngine::RT_SetupDefaultLight()
 SceneObject* RenderEngine::RT_CreateSceneObject(Ogre::String actorName, Ogre::String meshName) 
 {
 	return m_pSceneObjectProducer->Produce(actorName, meshName);
+}
+
+void RenderEngine::RT_InitSDL() 
+{
+	SDL_Init(SDL_INIT_VIDEO);
+
+	// GL 3.0 + GLSL 130
+	const char* glsl_version = "#version 130";
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	m_SDL_Window = SDL_CreateWindow("SDL Ogre Engine ", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+
+	m_GL_Context = SDL_GL_CreateContext(m_SDL_Window);
+	SDL_GL_MakeCurrent(m_SDL_Window, m_GL_Context);
+	SDL_GL_SetSwapInterval(0.5);
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplSDL2_InitForOpenGL(m_SDL_Window, m_GL_Context);
+	bool f = ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
+void RenderEngine::RT_SDLClenup()
+{
+	// Cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
+
+	SDL_GL_DeleteContext(m_GL_Context);
+	SDL_DestroyWindow(m_SDL_Window);
+	SDL_Quit();
 }

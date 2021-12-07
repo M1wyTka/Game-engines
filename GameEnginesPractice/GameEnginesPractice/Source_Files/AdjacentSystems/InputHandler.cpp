@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <windows.h>
 
-InputHandler::InputHandler(const std::string& strResourceRoot) : m_pMouseSensitivity(20)
+InputHandler::InputHandler(const std::string& strResourceRoot) : m_pMouseSensitivity(2)
 {
+	m_bMouseButtonDown = false;
+	m_bIsQuit = false;
 	m_strMapFilePath = strResourceRoot + "actionmap.ini";
 	std::replace(m_strMapFilePath.begin(), m_strMapFilePath.end(), '\\', '/');
 
@@ -47,7 +49,7 @@ void InputHandler::MapCommand(std::string strCommand, size_t nCommand)
 //	m_commandSymbolMap[strCommand] = strDefaultSymbol;
 //}
 
-void InputHandler::MapCommandSymbol(std::string strCommand,std::string strDefaultSymbol)
+void InputHandler::MapCommandSymbol(std::string strCommand, std::string strDefaultSymbol)
 {
 	m_commandSymbolMap[strCommand] = strDefaultSymbol;
 }
@@ -93,35 +95,48 @@ void InputHandler::MapInputEvent(std::size_t nSymbol, size_t nCommand)
 
 void InputHandler::Update()
 {
+	ReadMappedButtonInput();
+	ReadMouseInput();
+}
+
+void InputHandler::ReadMappedButtonInput() 
+{
 	for (auto& it : m_inputEventMap)
 	{
 		m_InputState.set(it.second, IsKeyDown(it.first));
 	}
-
-	if (m_pWinHandle)
-	{
-		m_pPrevMousePos = m_pCurMousePos;
-
-		GetCursorPos(&m_pMousePoint);
-		ScreenToClient(m_pWinHandle, &m_pMousePoint);
-
-		float x = float(m_pMousePoint.x);
-		float y = float(m_pMousePoint.y);
-		m_pCurMousePos = Ogre::Vector2(x, y);
-
-		m_bMouseButtonDown = GetKeyState(LMB) < 0;
-	}
+	
 }
 
-void InputHandler::SetWinHandle(HWND window)
+void InputHandler::ReadMouseInput() 
 {
-	m_pWinHandle = window;
-	GetCursorPos(&m_pMousePoint);
-	ScreenToClient(m_pWinHandle, &m_pMousePoint);
+	m_pPrevMousePos = m_pCurMousePos;
 
-	float x = float(m_pMousePoint.x);
-	float y = float(m_pMousePoint.y);
+	int x, y;
+	SDL_GetMouseState(&x, &y);
 	m_pCurMousePos = Ogre::Vector2(x, y);
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+		ImGui_ImplSDL2_ProcessEvent(&event);
+		switch (event.type)
+		{
+			case SDL_QUIT:
+				m_bIsQuit = true;
+				break;
+
+			case SDL_MOUSEBUTTONDOWN:
+				m_bMouseButtonDown = event.button.button == SDL_BUTTON_LEFT;
+				break;
+			case SDL_MOUSEBUTTONUP:
+				m_bMouseButtonDown = false;
+				break;
+			default:
+				break;
+		}
+		Ogre::LogManager::getSingleton().logMessage(std::to_string(m_bMouseButtonDown));
+	}
+	
 }
 
 const std::bitset<eIC_Max>& InputHandler::GetInputState() const
@@ -162,6 +177,7 @@ void InputHandler::FillSymbolMap()
 	MapSymbol("w", W_KEY);
 	MapSymbol("s", S_KEY);
 	MapSymbol("q", Q_KEY);
+	MapSymbol("shift", SHIFT);
 }
 
 void InputHandler::FillCommandMap() 
@@ -172,6 +188,7 @@ void InputHandler::FillCommandMap()
 	MapCommand("GoUp", eIC_GoUp);
 	MapCommand("GoDown", eIC_GoDown);
 	MapCommand("Shoot", eIC_Shoot);
+	MapCommand("Faster", eIC_Faster);
 }
 
 void InputHandler::FillCommandSymbolMap()

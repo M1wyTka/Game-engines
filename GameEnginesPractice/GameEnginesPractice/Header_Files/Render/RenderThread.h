@@ -6,7 +6,8 @@
 
 #include "GeneralDefines.h"
 #include "MTQueue.h"
-#include "function2.hpp"
+#include "function2/function2.hpp"
+//#include "function2.hpp"
 
 class RenderEngine;
 

@@ -1,6 +1,8 @@
 #include "ECS/ControlECS.h"
 #include "ECS/MeshECS.h"
 #include "ECS/KinematicsECS.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 void LoadControlSystems(flecs::world& world) 
 {
@@ -15,16 +17,10 @@ void LoadControlSystems(flecs::world& world)
                     {
                         inputQuery.each([&](InputHandlerPtr input)
                         {
-                            Ogre::Vector3 deltaVel = Ogre::Vector3::Vector3(0, 0, 0);
-                            if (input.ptr->GetInputState().test(eIC_GoLeft))
-                                deltaVel -= Ogre::Vector3::Vector3(ctr.ControllSpeed, 0, 0);
-                            if (input.ptr->GetInputState().test(eIC_GoRight))
-                                deltaVel += Ogre::Vector3::Vector3(ctr.ControllSpeed, 0, 0);
-                            if (input.ptr->GetInputState().test(eIC_GoDown))
-                                deltaVel -= Ogre::Vector3::Vector3(0, ctr.ControllSpeed, 0);
-                            if (input.ptr->GetInputState().test(eIC_GoUp))
-                                deltaVel += Ogre::Vector3::Vector3(0, ctr.ControllSpeed, 0); 
-                            offset.val += deltaVel * e.delta_time();
+                            Ogre::Vector2 inputVec;
+                            GetWASDVector(input.ptr, inputVec);
+                            Ogre::Vector3 deltaVel = ctr.ControllSpeed * Ogre::Vector3(inputVec.x, inputVec.y, 0) * e.delta_time();
+                            offset.val += deltaVel;
                         });
                     }
                 });
@@ -38,13 +34,43 @@ void LoadControlSystems(flecs::world& world)
                     {
                         inputQuery.each([&](InputHandlerPtr input)
                             {
-                                Ogre::Vector2 pressedDeltaMouse = -input.ptr->DeltaDownMousePos() * input.ptr->GetMouseSensitivity();
+                                Ogre::Vector2 inputVec = Ogre::Vector2(0, 0);
+                                GetWASDVector(input.ptr, inputVec);
+                                float speed = ctr.ControllSpeed;
+                                if (input.ptr->GetInputState().test(eIC_Faster))
+                                    speed *= 2;
+                                Ogre::Vector3 deltaVel = speed * Ogre::Vector3(inputVec.x, 0, -inputVec.y) * e.delta_time();
+                                Ogre::Vector2 pressedDeltaMouse = input.ptr->DeltaDownMousePos() * input.ptr->GetMouseSensitivity();
                                 pressedDeltaMouse *= e.delta_time();
+                                
+                                Ogre::Radian offset = Ogre::Radian(pressedDeltaMouse.y);
+                                Ogre::Radian newVal = cam.ptr->getRealOrientation().getPitch() + offset;
+                                if (newVal >= Ogre::Radian(M_PI / 2) || newVal <= -Ogre::Radian(M_PI / 2))
+                                {
+                                    Ogre::Radian clamped = std::clamp(newVal, -Ogre::Radian(M_PI / 2) + Ogre::Radian(M_PI / 100), Ogre::Radian(M_PI / 2) - Ogre::Radian(M_PI / 100));
+                                    offset = clamped - cam.ptr->getRealOrientation().getPitch();
+                                }
+
+
                                 rendEngine.ptr->GetRT()->RC_LambdaAction([=] { 
-                                        cam.ptr->move(Ogre::Vector3(pressedDeltaMouse.x, pressedDeltaMouse.y, 0));
-                                        cam.ptr->lookAt(Ogre::Vector3(0, 0, 0));
+                                        cam.ptr->moveRelative(deltaVel);
+                                        cam.ptr->yaw(Ogre::Radian(-pressedDeltaMouse.x));
+                                        cam.ptr->pitch(offset);
                                     });
                             });
                     });
             });
+}
+
+
+void GetWASDVector(InputHandler* input, Ogre::Vector2 &vec)
+{
+    if (input->GetInputState().test(eIC_GoLeft))
+        vec -= Ogre::Vector2(1, 0);
+    if (input->GetInputState().test(eIC_GoRight))
+        vec += Ogre::Vector2(1, 0);
+    if (input->GetInputState().test(eIC_GoDown))
+        vec -= Ogre::Vector2(0, 1);
+    if (input->GetInputState().test(eIC_GoUp))
+        vec += Ogre::Vector2(0, 1);
 }

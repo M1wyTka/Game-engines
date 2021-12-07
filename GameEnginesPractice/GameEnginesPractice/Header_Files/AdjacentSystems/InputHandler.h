@@ -7,6 +7,13 @@
 
 #include "Ogre.h"
 
+#include "SDL.h"
+
+#include "imgui.h"
+#include "backends/imgui_impl_sdl.h"
+#include "backends/imgui_impl_opengl3.h"
+
+
 class InputHandler
 {
 public:
@@ -15,6 +22,7 @@ public:
 
 	void Update();
 
+	bool GetQuit() const { return m_bIsQuit;  };
 	const std::bitset<eIC_Max>& GetInputState() const;
 	bool IsCommandActive(EInputCommand inputCommand) const;
 
@@ -22,8 +30,6 @@ public:
 	Ogre::Vector2 DeltaMousePos() const;
 	Ogre::Vector2 DeltaDownMousePos() const;
 	float GetMouseSensitivity() const { return m_pMouseSensitivity; }
-
-	void SetWinHandle(HWND window);
 
 private:
 	void LoadConfiguration();
@@ -41,6 +47,11 @@ private:
 	//void MapCommandSymbol(std::string strCommand, size_t nCommand, std::string strDefaultSymbol);
 	void Remap();
 
+	void ReadMappedButtonInput();
+	void ReadMouseInput();
+
+	bool m_bIsQuit;
+
 	std::string m_strMapFilePath;
 
 	typedef std::unordered_map<std::string, size_t> TCommandMap;
@@ -56,7 +67,6 @@ private:
 	std::bitset<eIC_Max> m_InputState;
 	bool m_bMouseButtonDown;
 
-	HWND m_pWinHandle;
 	POINT m_pMousePoint;
 	Ogre::Vector2 m_pCurMousePos;
 	Ogre::Vector2 m_pPrevMousePos;

@@ -34,7 +34,6 @@ SceneObject* SceneObjectProducer::Produce(Ogre::String actorName, Ogre::String m
 	}
 	else
 	{
-		meshInstanceNum = 0;
 		m_mpUsedMeshes.insert({ meshName, 0 });
 	}
 
