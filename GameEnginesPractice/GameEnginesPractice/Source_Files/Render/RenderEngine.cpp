@@ -1,6 +1,6 @@
 #include "Render/RenderEngine.h"
 
-RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
+RenderEngine::RenderEngine(ResourceManager* pResourceManager, flecs::world* world) :
 	m_pRoot(nullptr),
 	m_pRenderWindow(nullptr),
 	m_pSceneManager(nullptr),
@@ -9,9 +9,13 @@ RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 	m_pWorkspace(nullptr),
 	m_pRT(nullptr),
 	m_pSceneObjectProducer(nullptr),
+	m_pCurSelection(nullptr),
 	m_bIsInitialized(false),
 	m_bQuit(false),
-	m_pResourceManager(pResourceManager)
+	m_bSelectionChanged(false),
+	m_bIsFreeze(false),
+	m_pResourceManager(pResourceManager),
+	m_pECSWorld(world)
 {
 	m_pRT = std::unique_ptr<RenderThread>(new RenderThread(this));
 
@@ -23,7 +27,6 @@ RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 		RT_SetupDefaultLight();
 		RT_LoadOgreHead();
 	});
-
 	
 	m_pRT->Start();
 }
@@ -57,18 +60,165 @@ void RenderEngine::Update()
 
 	if (m_pRenderWindow->isVisible())
 		m_bQuit |= !m_pRoot->renderOneFrame();
+	
+	SDL_PumpEvents();
+	{
+		SDL_Event event;
+		while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_TEXTINPUT) > 0)
+		{
+			ImGui_ImplSDL2_ProcessEvent(&event);
+		}
+	}
 
+	if (m_bIsMousePressed)
+		RaycastToMouse();
+
+	StartGuiUpdate();
+	
+	DisplayMenuBar();
+	DisplayAllScripts();
+	DisplaySelectionParameters();
+	DisplayFreezeBtn();
+
+	EndGuiUpdate();
+	
+	m_pRenderWindow->windowMovedOrResized();
+}
+
+void RenderEngine::RT_SetCurrentMouseState(bool isPressed, Ogre::Vector2 mousePos) 
+{
+	m_bIsMousePressed = isPressed;
+	m_vecMousePos = mousePos;
+}
+
+void RenderEngine::DisplayMenuBar() 
+{
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("Save", "CTRL+S")) {}
+			if (ImGui::MenuItem("Load", "")) {}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
+	}
+}
+
+void RenderEngine::DisplaySelectionParameters()
+{
+	if (m_pCurSelection)
+	{
+		ImGui::Begin("Parameters");
+		ImGui::Text(m_pCurSelection->getName().c_str());
+		
+		static float posVec[3] = { 0.f, 0.f, 0.f};
+		posVec[0] = float(m_pCurSelection->getPosition().x);
+		posVec[1] = float(m_pCurSelection->getPosition().y);
+		posVec[2] = float(m_pCurSelection->getPosition().z);
+		ImGui::InputFloat3("Position", posVec);
+
+		static int rotVec[3] = { 0, 0, 0 };
+		rotVec[0] = int(m_pCurSelection->getOrientation().getPitch().valueDegrees());
+		rotVec[1] = int(m_pCurSelection->getOrientation().getYaw().valueDegrees());
+		rotVec[2] = int(m_pCurSelection->getOrientation().getRoll().valueDegrees());
+		ImGui::InputInt3("Rotation", rotVec);
+		ImGui::End();
+
+		m_pCurSelection->setPosition(posVec[0], posVec[1], posVec[2]);
+
+		Ogre::Quaternion q = m_pCurSelection->getOrientation();
+		int clampedX = std::clamp(rotVec[0], -180, 180);
+		if (clampedX != int(m_pCurSelection->getOrientation().getPitch().valueDegrees()))
+		{
+			Ogre::Radian radX = Ogre::Radian(Ogre::Degree(clampedX));
+			Ogre::Radian offsetX = radX - m_pCurSelection->getOrientation().getPitch();
+			q.FromAngleAxis(offsetX, Ogre::Vector3::UNIT_X);
+			q = q* m_pCurSelection->getOrientation();
+			m_pCurSelection->setOrientation(q);
+			return;
+		}
+
+		int clampedY = std::clamp(rotVec[1], -180, 180);
+		if (clampedY != int(m_pCurSelection->getOrientation().getYaw().valueDegrees()))
+		{
+			Ogre::Radian radY = Ogre::Radian(Ogre::Degree(clampedY));
+			Ogre::Radian offsetY = radY - m_pCurSelection->getOrientation().getYaw();
+			q.FromAngleAxis(offsetY, Ogre::Vector3::UNIT_Y);
+			q = q * m_pCurSelection->getOrientation();
+			m_pCurSelection->setOrientation(q);
+			return;
+		}
+
+		int clampedZ = std::clamp(rotVec[2], -180, 180);
+		if (clampedZ != int(m_pCurSelection->getOrientation().getRoll().valueDegrees()))
+		{
+			Ogre::Radian radZ = Ogre::Radian(Ogre::Degree(clampedZ));
+			Ogre::Radian offsetZ = radZ - m_pCurSelection->getOrientation().getRoll();
+			q.FromAngleAxis(offsetZ, Ogre::Vector3::UNIT_Z);
+			q = q * m_pCurSelection->getOrientation();
+			m_pCurSelection->setOrientation(q);
+			return;
+		}
+	}
+}
+
+void RenderEngine::DisplayAllScripts()
+{
+	ImGui::Begin("Scripts");
+	std::string path = "D:\\MIPT\\Game-engines\\GameEnginesPractice\\GameEnginesPractice\\Scripts";
+	for (const auto& entry : std::filesystem::directory_iterator(path))
+	{
+		if (std::filesystem::is_regular_file(entry) && entry.path().extension() == ".lua")
+		{
+			std::string btnName = entry.path().filename().string();
+			if (ImGui::Button(btnName.c_str()))
+			{
+				std::string command = "start notepad++ " + entry.path().string();
+				std::system(command.c_str());
+			}
+		}
+	}
+	ImGui::End();
+}
+
+void RenderEngine::DisplayFreezeBtn() 
+{
+	ImGui::Begin("lol");
+	ImGui::Checkbox("F", &m_bIsFreeze);
+	ImGui::End();
+}
+
+void RenderEngine::RaycastToMouse()
+{
+	Ogre::Ray ray = m_pCamera->getCameraToViewportRay(float(m_vecMousePos.x) /m_pRenderWindow->getWidth(), float(m_vecMousePos.y) / m_pRenderWindow->getHeight());
+	Ogre::RaySceneQuery* query = m_pSceneManager->createRayQuery(ray);
+	query->setSortByDistance(true);
+
+	bool mMovableFound = false;
+	Ogre::RaySceneQueryResult& result = query->execute();
+	if (!result.empty()) 
+	{
+		m_bSelectionChanged = m_pCurSelection != result[0].movable->getParentSceneNode();
+		m_pCurSelection = result[0].movable->getParentSceneNode();
+	}
+	
+	m_pSceneManager->destroyQuery(query);
+}
+
+void RenderEngine::StartGuiUpdate() 
+{
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(m_SDL_Window);
 	ImGui::NewFrame();
+}
 
-	bool f = true;
-	//ImGui::ShowDemoWindow(&f);
-
-	// Rendering
+void RenderEngine::EndGuiUpdate()
+{
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	SDL_GL_SwapWindow(m_SDL_Window);
+	m_pRenderWindow->windowMovedOrResized();
 }
 
 void RenderEngine::RT_Init()
@@ -110,6 +260,7 @@ void RenderEngine::RT_Init()
 	params["externalGLControl"] = Ogre::String("True");
 	
 	m_pRenderWindow = std::unique_ptr<Ogre::Window>(Ogre::Root::getSingleton().createRenderWindow(sTitleName, width, height, false, &params));
+
 
 	// Scene manager
 	m_pSceneManager = std::unique_ptr<Ogre::SceneManager>(m_pRoot->createSceneManager(Ogre::SceneType::ST_GENERIC, 2));
@@ -194,6 +345,8 @@ void RenderEngine::RT_InitSDL()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.WantCaptureKeyboard = true;
+	Ogre::LogManager::getSingleton().logMessage(std::to_string(io.WantCaptureKeyboard));
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();

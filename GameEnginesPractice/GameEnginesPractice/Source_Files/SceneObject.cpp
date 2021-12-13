@@ -54,3 +54,8 @@ Ogre::String SceneObject::GetName() const
 {
 	return m_strName;
 }
+
+void SceneObject::SetVisibility(bool newState) 
+{
+	m_pSceneNode->setVisible(newState);
+}

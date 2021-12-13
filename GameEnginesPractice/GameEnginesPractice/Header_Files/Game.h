@@ -21,6 +21,8 @@
 #include "ECS/ControlECS.h"
 #include "ECS/KinematicsECS.h"
 
+#include "GUI/GUISceneHierarchy.h"
+
 class Game
 {
 public:
@@ -32,6 +34,7 @@ public:
 	void Run();
 	bool Update();
 	bool UpdateAllSystems();
+	bool UpdateECSSystems();
 
 private:
 	GameTimer m_Timer;

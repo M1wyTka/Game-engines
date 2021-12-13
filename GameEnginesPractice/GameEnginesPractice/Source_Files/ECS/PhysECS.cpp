@@ -1,6 +1,7 @@
 #include "ECS/PhysECS.h"
 #include "Universe.h"
 #include "ECS/KinematicsECS.h"
+#include "OgreLogManager.h"
 
 void LoadPhysSystems(flecs::world& world)
 {
@@ -9,9 +10,9 @@ void LoadPhysSystems(flecs::world& world)
 
 void LoadPlanetGravitationSystem(flecs::world& world)
 {
-    world.system<Velocity, const Position, DeltaPos, const Mass>()
+    world.system<const Kinematics, const Mass, Velocity, DeltaKinematics>()
         .kind(flecs::OnUpdate)
-        .iter([&](flecs::iter& it, Velocity* vel, const Position* pos, DeltaPos* delta, const Mass* mass)
+        .iter([&](flecs::iter& it, const Kinematics* kins, const Mass* mass, Velocity* vel, DeltaKinematics* dKins)
             {
                 for (int i : it)
                 {
@@ -20,7 +21,7 @@ void LoadPlanetGravitationSystem(flecs::world& world)
                         if (i >= j)
                             continue;
 
-                        Ogre::Vector3 posDifference = pos[j].val - pos[i].val;
+                        Ogre::Vector3 posDifference = kins[j].Position - kins[i].Position;
                         float sqrDistance = posDifference.squaredLength();
 
                         Ogre::Vector3 forceDir = posDifference.normalisedCopy();
@@ -32,9 +33,31 @@ void LoadPlanetGravitationSystem(flecs::world& world)
                         vel[i] += accelerationI * GravTimestep;
                         vel[j] += accelerationII * GravTimestep;
 
-                        delta[i].val += vel[i] * GravTimestep;
-                        delta[j].val += vel[j] * GravTimestep;
+                        dKins[i].DeltaPos += vel[i] * GravTimestep;
+                        dKins[j].DeltaPos += vel[j] * GravTimestep;
                     }
                 }
             });
+    {
+        world.system<const Kinematics, const SphereCollider>()
+            .kind(flecs::OnValidate)
+            .iter([&](flecs::iter& it, const Kinematics* kins, const SphereCollider* collider)
+                {
+                    for (int i : it)
+                    {
+                        for (int j : it)
+                        {
+                            if (i >= j)
+                                continue;
+
+                            Ogre::Vector3 diff = kins[i].Position - kins[j].Position;
+                            float  colDist = collider[i].radius + collider[j].radius;
+                            if (diff.squaredLength() <= colDist*colDist)
+                            {
+                                Ogre::LogManager::getSingleton().logMessage("collision!");
+                            }
+                        }
+                    }
+                }); 
+    }
 }

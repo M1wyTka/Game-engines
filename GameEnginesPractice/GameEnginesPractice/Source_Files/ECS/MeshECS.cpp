@@ -11,19 +11,30 @@ void LoadMeshSystems(flecs::world& world)
 
 void LoadMeshCreationSystem(flecs::world& world, flecs::query<RenderEnginePtr>& renderQuery)
 {
-    world.system<const MeshName, const Position, const Rotation, const Scale>().kind(flecs::PreUpdate)
-        .each([&](flecs::entity e, const MeshName& nm, const Position& pos, const Rotation& rot, const Scale& sc)
+    world.system<Kinematics, SceneObj>()
+        .kind(flecs::PreUpdate)
+        .each([&](flecs::entity e, Kinematics& kins, SceneObj& scnObj)
+            {
+                kins.Rotation = scnObj.pSceneObject->GetOrientation();
+                kins.Position = scnObj.pSceneObject->GetPosition();
+                kins.Scale = scnObj.pSceneObject->GetScale();
+            });
+
+    world.system<const SceneObjectPattern, const Kinematics>()
+        .kind(flecs::OnLoad)
+        .each([&](flecs::entity e, const SceneObjectPattern& stencil, const Kinematics& kins)
             {
                 renderQuery.each([&](RenderEnginePtr rendEngine)
                     {
                         if (rendEngine.ptr->IsInitialized())
                             rendEngine.ptr->GetRT()->RC_LambdaAction([=] {
-                                SceneObject* temp = rendEngine.ptr->RT_CreateSceneObject(nm.name, nm.name);
-                                temp->SetPosition(pos.val);
-                                temp->Rotate(rot.val);
-                                temp->SetScale(sc.val);
+                                SceneObject* temp = rendEngine.ptr->RT_CreateSceneObject(stencil.name, stencil.meshName);
+                                temp->SetVisibility(stencil.isVisible);
+                                temp->SetPosition(kins.Position);
+                                //temp->Rotate(kins.Rotation);
+                                temp->SetScale(kins.Scale);
                                 e.set<SceneObj>(SceneObj{ temp });
-                                e.remove<MeshName>();
+                                e.remove<SceneObjectPattern>();
                             });
                     });
             });
@@ -31,48 +42,20 @@ void LoadMeshCreationSystem(flecs::world& world, flecs::query<RenderEnginePtr>& 
 
 void LoadMeshPositionsUpdateSystem(flecs::world& world, flecs::query<RenderEnginePtr>& renderQuery)
 {
-    world.system<SceneObj, const Position, const DeltaPos>()
+    world.system<SceneObj, const Kinematics, const DeltaKinematics>()
         .kind(flecs::OnStore)
-        .iter([&](flecs::iter& it, SceneObj* sceneNodes, const Position* pos, const DeltaPos* delta)
+        .iter([&](flecs::iter& it, SceneObj* sceneNodes, const Kinematics* kins, const DeltaKinematics* dKins)
             {
                 renderQuery.each([&](RenderEnginePtr rendEngine)
-                    {   
+                    {
                         rendEngine.ptr->GetRT()->RC_LambdaAction([=] {
                             for (int i : it)
                             {
-                                sceneNodes[i].pSceneObject->Translate(delta[i].val);
+                                sceneNodes[i].pSceneObject->Translate(dKins[i].DeltaPos);
+                                sceneNodes[i].pSceneObject->SetOrientation(dKins[i].DeltaRot);
+                                //sceneNodes[i].pSceneObject->SetScale(dKins[i].DeltaScale);
                             }
                         });
-                    });
-            });
-
-    world.system<SceneObj, const DeltaRotation>()
-        .kind(flecs::PreStore)
-        .iter([&](flecs::iter& it, SceneObj* sceneNodes, const DeltaRotation* delta)
-            {
-                renderQuery.each([&](RenderEnginePtr rendEngine)
-                    {
-                        rendEngine.ptr->GetRT()->RC_LambdaAction([=] {
-                                for (int i : it)
-                                {
-                                    sceneNodes[i].pSceneObject->SetOrientation(delta[i].val);
-                                }
-                            });
-                    });
-            });
-
-    world.system<SceneObj, const DeltaScale>()
-        .kind(flecs::PreStore)
-        .iter([&](flecs::iter& it, SceneObj* sceneNodes, const DeltaScale* delta)
-            {
-                renderQuery.each([&](RenderEnginePtr rendEngine)
-                    {
-                        rendEngine.ptr->GetRT()->RC_LambdaAction([=] {
-                                for (int i : it)
-                                {
-                                    sceneNodes[i].pSceneObject->SetScale(delta[i].val);
-                                }
-                            });
                     });
             });
 }

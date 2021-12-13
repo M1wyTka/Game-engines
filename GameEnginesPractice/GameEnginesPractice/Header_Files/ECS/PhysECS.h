@@ -12,6 +12,11 @@ struct Mass
 	float mass;
 };
 
+struct SphereCollider 
+{
+	float radius;
+};
+
 void LoadPhysSystems(flecs::world& world);
 
 void LoadPlanetGravitationSystem(flecs::world& world);

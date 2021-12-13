@@ -43,7 +43,7 @@ void RenderThread::Run()
 		RC_ProcessLambdaCommands();
 
 		SignalMainThread();
-
+		
 		m_pRenderEngine->Update();
 
 		RC_EndFrame();

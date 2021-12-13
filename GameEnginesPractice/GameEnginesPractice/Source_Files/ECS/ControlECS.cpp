@@ -8,8 +8,8 @@ void LoadControlSystems(flecs::world& world)
 {
     static auto renderQuery = world.query<RenderEnginePtr>();
     static auto inputQuery = world.query<InputHandlerPtr>();
-    world.system<DeltaPos, const Controllable>()
-        .each([&](flecs::entity e, DeltaPos& offset, const Controllable& ctr)
+    world.system<DeltaKinematics, const Controllable>()
+        .each([&](flecs::entity e, DeltaKinematics& offset, const Controllable& ctr)
             {
                 renderQuery.each([&](RenderEnginePtr rendEngine)
                 {
@@ -20,7 +20,7 @@ void LoadControlSystems(flecs::world& world)
                             Ogre::Vector2 inputVec;
                             GetWASDVector(input.ptr, inputVec);
                             Ogre::Vector3 deltaVel = ctr.ControllSpeed * Ogre::Vector3(inputVec.x, inputVec.y, 0) * e.delta_time();
-                            offset.val += deltaVel;
+                            offset.DeltaPos += deltaVel;
                         });
                     }
                 });
@@ -42,15 +42,12 @@ void LoadControlSystems(flecs::world& world)
                                 Ogre::Vector3 deltaVel = speed * Ogre::Vector3(inputVec.x, 0, -inputVec.y) * e.delta_time();
                                 Ogre::Vector2 pressedDeltaMouse = input.ptr->DeltaDownMousePos() * input.ptr->GetMouseSensitivity();
                                 pressedDeltaMouse *= e.delta_time();
-                                
+
                                 Ogre::Radian offset = Ogre::Radian(pressedDeltaMouse.y);
                                 Ogre::Radian newVal = cam.ptr->getRealOrientation().getPitch() + offset;
-                                if (newVal >= Ogre::Radian(M_PI / 2) || newVal <= -Ogre::Radian(M_PI / 2))
-                                {
-                                    Ogre::Radian clamped = std::clamp(newVal, -Ogre::Radian(M_PI / 2) + Ogre::Radian(M_PI / 100), Ogre::Radian(M_PI / 2) - Ogre::Radian(M_PI / 100));
-                                    offset = clamped - cam.ptr->getRealOrientation().getPitch();
-                                }
-
+                                
+                                Ogre::Radian clamped = std::clamp(newVal, -Ogre::Radian(M_PI / 2), Ogre::Radian(M_PI / 2));
+                                offset = clamped - cam.ptr->getRealOrientation().getPitch();
 
                                 rendEngine.ptr->GetRT()->RC_LambdaAction([=] { 
                                         cam.ptr->moveRelative(deltaVel);

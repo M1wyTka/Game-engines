@@ -8,6 +8,11 @@ FileSystem::~FileSystem()
 {
 }
 
+const std::string FileSystem::GetCodeRoot() 
+{
+	return m_pCodeDir.string();
+}
+
 const std::string FileSystem::GetMediaRoot()
 {
 	return m_pMediaRoot.string();
@@ -15,7 +20,7 @@ const std::string FileSystem::GetMediaRoot()
 
 const std::string FileSystem::GetScriptsRoot()
 {
-	return (m_pMediaRoot / m_pScriptsRoot).string();
+	return m_pScriptsRoot.string();
 }
 
 const std::string FileSystem::JoinPaths(const std::string& strA, const std::string& strB) 

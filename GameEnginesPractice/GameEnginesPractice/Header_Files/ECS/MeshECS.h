@@ -8,11 +8,6 @@
 
 #include "Render/RenderEngine.h"
 
-struct SceneNode
-{
-	class Ogre::SceneNode* pSceneNode;
-};
-
 struct SceneObj
 {
 	class SceneObject* pSceneObject;
@@ -23,9 +18,11 @@ struct MeshName
 	Ogre::String name;
 };
 
-struct SceneNodeDeliveryIndex
+struct SceneObjectPattern 
 {
-	uint32_t idx;
+	Ogre::String name;
+	Ogre::String meshName;
+	bool isVisible;
 };
 
 void LoadMeshSystems(flecs::world& world);

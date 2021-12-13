@@ -3,42 +3,24 @@
 void LoadKinematicsSystems(flecs::world& world) 
 {
 	{
-		world.system<DeltaPos>().kind(flecs::PreUpdate)
-			.each([&](flecs::entity e, DeltaPos& pos)
+		world.system<DeltaKinematics>()
+			.kind(flecs::PreUpdate)
+			.each([&](flecs::entity e, DeltaKinematics& dk)
 				{
-					pos.val = Ogre::Vector3(0, 0, 0);
-				});
-
-		world.system<DeltaRotation>().kind(flecs::PreUpdate)
-			.each([&](flecs::entity e, DeltaRotation& rot)
-				{
-					rot.val = Ogre::Quaternion(0, 0, 0, 0);
-				});
-
-		world.system<DeltaScale>().kind(flecs::PreUpdate)
-			.each([&](flecs::entity e, DeltaScale& sc)
-				{
-					sc.val = Ogre::Vector3(0, 0, 0);
+					dk.DeltaRot = Ogre::Quaternion::IDENTITY;
+					dk.DeltaPos = Ogre::Vector3(0, 0, 0);
+					dk.DeltaScale = Ogre::Vector3(0, 0, 0);
 				});
 	}
 
 	{
-		world.system<Position, DeltaPos>().kind(flecs::PostUpdate)
-			.each([&](flecs::entity e, Position& pos, DeltaPos& delta)
+		world.system<Kinematics, DeltaKinematics>()
+			.kind(flecs::PostUpdate)
+			.each([&](flecs::entity e, Kinematics& k, DeltaKinematics& dk)
 				{
-					pos.val += delta.val;
-				});
-
-		world.system<Rotation, DeltaRotation>().kind(flecs::PostUpdate)
-			.each([&](flecs::entity e, Rotation& rot, DeltaRotation& delta)
-				{
-					//rot.val = Ogre::Quaternion(0, 0, 0, 0);
-				});
-
-		world.system<Scale, DeltaScale>().kind(flecs::PostUpdate)
-			.each([&](flecs::entity e, Scale& sc, DeltaScale& delta)
-				{
-					sc.val = delta.val;
+					k.Position += dk.DeltaPos;
+					//k.Rotation += dk.DeltaRot;
+					k.Scale += dk.DeltaScale;
 				});
 	}
 }

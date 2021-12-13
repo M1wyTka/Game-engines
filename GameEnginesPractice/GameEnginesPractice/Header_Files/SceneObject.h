@@ -24,6 +24,8 @@ public:
 	void SetOrientation(Ogre::Quaternion orientation);
 	void Rotate(Ogre::Quaternion rotation);
 	Ogre::Quaternion GetOrientation() const;
+
+	void SetVisibility(bool newState);
 	
 private:
 	Ogre::String m_strName;

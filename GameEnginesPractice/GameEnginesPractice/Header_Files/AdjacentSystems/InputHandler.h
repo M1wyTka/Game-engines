@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <bitset>
+#include <stack>
 
 #include "Ogre.h"
 
@@ -26,10 +27,12 @@ public:
 	const std::bitset<eIC_Max>& GetInputState() const;
 	bool IsCommandActive(EInputCommand inputCommand) const;
 
-	Ogre::Vector2 MousePos() const;
 	Ogre::Vector2 DeltaMousePos() const;
 	Ogre::Vector2 DeltaDownMousePos() const;
 	float GetMouseSensitivity() const { return m_pMouseSensitivity; }
+
+	bool IsMousePressed() const { return m_bMouseButtonDown; }
+	Ogre::Vector2 GetMousePosition() const { return m_pCurMousePos; }
 
 private:
 	void LoadConfiguration();
@@ -58,16 +61,17 @@ private:
 	typedef std::unordered_map<std::string, size_t> TSymbolMap;
 	typedef std::unordered_map<size_t, size_t> TInputEventMap;
 	typedef std::unordered_map<std::string, std::string> TCommandSymbolMap;
+	typedef std::stack<SDL_KeyCode> TCommandStack;
 
 	TCommandMap m_commandMap;
 	TSymbolMap m_symbolMap;
 	TInputEventMap m_inputEventMap;
 	TCommandSymbolMap m_commandSymbolMap;
+	TCommandStack m_commandStack;
 
 	std::bitset<eIC_Max> m_InputState;
 	bool m_bMouseButtonDown;
 
-	POINT m_pMousePoint;
 	Ogre::Vector2 m_pCurMousePos;
 	Ogre::Vector2 m_pPrevMousePos;
 	float m_pMouseSensitivity;

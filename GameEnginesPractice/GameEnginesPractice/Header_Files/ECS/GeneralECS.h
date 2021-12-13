@@ -17,9 +17,4 @@ struct MainCameraPtr
 	class Ogre::Camera* ptr;
 };
 
-struct ScriptSystemPtr
-{
-	class ScriptSystem* ptr;
-};
-
 void LoadGeneralSystems(flecs::world& world);

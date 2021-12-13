@@ -1,34 +1,18 @@
 #include "OGRE/OgreVector3.h"
 #include "flecs.h"
 
-struct Position
+struct Kinematics 
 {
-	Ogre::Vector3 val;
+	Ogre::Quaternion Rotation;
+	Ogre::Vector3    Position;
+	Ogre::Vector3    Scale;	
 };
 
-struct Rotation
+struct DeltaKinematics 
 {
-	Ogre::Quaternion val;
-};
-
-struct Scale 
-{
-	Ogre::Vector3 val;
-};
-
-struct DeltaPos
-{
-	Ogre::Vector3 val;
-};
-
-struct DeltaScale
-{
-	Ogre::Vector3 val;
-};
-
-struct DeltaRotation
-{
-	Ogre::Quaternion val;
+	Ogre::Quaternion DeltaRot;
+	Ogre::Vector3    DeltaPos;
+	Ogre::Vector3    DeltaScale;
 };
 
 void LoadKinematicsSystems(flecs::world& world);

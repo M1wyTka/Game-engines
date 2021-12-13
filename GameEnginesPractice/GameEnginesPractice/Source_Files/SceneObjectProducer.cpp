@@ -13,6 +13,9 @@ SceneObjectProducer::~SceneObjectProducer()
 
 SceneObject* SceneObjectProducer::Produce(Ogre::String actorName, Ogre::String meshName)
 {
+	if (meshName.empty())
+		return Produce(actorName);
+
 	Ogre::String name = actorName;
 	
 	int meshInstanceNum = 0;
@@ -41,7 +44,29 @@ SceneObject* SceneObjectProducer::Produce(Ogre::String actorName, Ogre::String m
 	Ogre::Item* item = LoadItem(meshToUse);
 	Ogre::SceneNode* node = LoadNode(item);
 
+	//m_pLogicVisualMapping.insert({ node, ent });
+
 	return new SceneObject(name, node);
+}
+
+SceneObject* SceneObjectProducer::Produce(Ogre::String actorName)
+{
+	Ogre::String name = actorName;
+	if (m_mpUsedNames.find(actorName) != m_mpUsedNames.end())
+	{
+		m_mpUsedNames.emplace(actorName, ++m_mpUsedNames[actorName]);
+		name = actorName + std::to_string(m_mpUsedNames[actorName]);
+	}
+	else
+	{
+		m_mpUsedNames.insert({ actorName, 0 });
+	}
+	Ogre::SceneNode* sceneNode = m_pSceneManager->getRootSceneNode(Ogre::SCENE_DYNAMIC)->
+		createChildSceneNode(Ogre::SCENE_DYNAMIC);
+
+	//m_pLogicVisualMapping.insert({ sceneNode, ent });
+
+	return new SceneObject(name, sceneNode);
 }
 
 Ogre::MeshPtr SceneObjectProducer::LoadMeshModel(Ogre::String meshName, int instanceNum)

@@ -12,11 +12,6 @@ struct Controllable
 	float ControllSpeed;
 };
 
-struct CameraPosition : public Ogre::Vector3 
-{
-	using Ogre::Vector3::Vector3;
-};
-
 void LoadControlSystems(flecs::world& World);
 
 void GetWASDVector(InputHandler* input, Ogre::Vector2 &vec);

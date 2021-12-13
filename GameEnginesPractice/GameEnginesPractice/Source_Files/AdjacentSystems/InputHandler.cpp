@@ -9,7 +9,7 @@ InputHandler::InputHandler(const std::string& strResourceRoot) : m_pMouseSensiti
 {
 	m_bMouseButtonDown = false;
 	m_bIsQuit = false;
-	m_strMapFilePath = strResourceRoot + "actionmap.ini";
+	m_strMapFilePath = strResourceRoot + "\\actionmap.ini";
 	std::replace(m_strMapFilePath.begin(), m_strMapFilePath.end(), '\\', '/');
 
 	FillSymbolMap();
@@ -115,28 +115,31 @@ void InputHandler::ReadMouseInput()
 	int x, y;
 	SDL_GetMouseState(&x, &y);
 	m_pCurMousePos = Ogre::Vector2(x, y);
+	
+	SDL_PumpEvents();
 	SDL_Event event;
-	while (SDL_PollEvent(&event))
+	while (SDL_PollEvent(&event)) 
 	{
-		ImGui_ImplSDL2_ProcessEvent(&event);
 		switch (event.type)
 		{
-			case SDL_QUIT:
-				m_bIsQuit = true;
-				break;
+		case SDL_MOUSEBUTTONDOWN:
+			if (event.button.button == SDL_BUTTON_LEFT)
+				m_bMouseButtonDown = true;
+			break;
 
-			case SDL_MOUSEBUTTONDOWN:
-				m_bMouseButtonDown = event.button.button == SDL_BUTTON_LEFT;
-				break;
-			case SDL_MOUSEBUTTONUP:
+		case SDL_MOUSEBUTTONUP:
+			if (event.button.button == SDL_BUTTON_LEFT)
 				m_bMouseButtonDown = false;
-				break;
-			default:
-				break;
+			break;
+
+		case SDL_QUIT:
+			m_bIsQuit = true;
+			break;
+
+		default:
+			break;
 		}
-		Ogre::LogManager::getSingleton().logMessage(std::to_string(m_bMouseButtonDown));
 	}
-	
 }
 
 const std::bitset<eIC_Max>& InputHandler::GetInputState() const
@@ -147,11 +150,6 @@ const std::bitset<eIC_Max>& InputHandler::GetInputState() const
 bool InputHandler::IsCommandActive(EInputCommand inputCommand) const
 {
 	return m_InputState.test(inputCommand);
-}
-
-Ogre::Vector2 InputHandler::MousePos() const
-{
-	return m_pCurMousePos;
 }
 
 Ogre::Vector2 InputHandler::DeltaMousePos() const

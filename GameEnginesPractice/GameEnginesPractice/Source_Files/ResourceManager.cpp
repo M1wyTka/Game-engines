@@ -3,7 +3,7 @@
 
 ResourceManager::ResourceManager(FileSystem* fileSys) : m_pFileSystem(fileSys)
 {
-	m_strResourceRoot = m_pFileSystem->GetMediaRoot();
+	m_strResourceRoot = m_pFileSystem->GetMediaRoot() + "\\";
 }
 
 ResourceManager::~ResourceManager()
