@@ -23,7 +23,7 @@ public:
 
 	void Update();
 
-	bool GetQuit() const { return m_bIsQuit;  };
+	bool IsQuit() const { return m_bIsQuit;  };
 	const std::bitset<eIC_Max>& GetInputState() const;
 	bool IsCommandActive(EInputCommand inputCommand) const;
 

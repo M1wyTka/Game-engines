@@ -13,10 +13,11 @@ RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 	m_bIsInitialized(false),
 	m_bQuit(false),
 	m_bSelectionChanged(false),
-	m_bIsFreeze(false),
 	m_pResourceManager(pResourceManager)
 {
 	m_pRT = std::unique_ptr<RenderThread>(new RenderThread(this));
+	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	m_SDL_Window = SDL_CreateWindow("SDL Ogre Engine ", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
 
 	m_pRT->RC_LambdaAction([this] {
 		RT_Init();
@@ -56,145 +57,64 @@ bool RenderEngine::SetOgreConfig()
 void RenderEngine::Update()
 {
 	Ogre::WindowEventUtilities::messagePump();
+	SDL_GL_MakeCurrent(m_SDL_Window, m_GL_Context);
 
 	if (m_pRenderWindow->isVisible())
 		m_bQuit |= !m_pRoot->renderOneFrame();
 	
-	SDL_PumpEvents();
-	{
-		SDL_Event event;
-		while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_KEYDOWN, SDL_TEXTINPUT) > 0)
-		{
-			ImGui_ImplSDL2_ProcessEvent(&event);
-		}
-	}
+	SDL_GL_SwapWindow(m_SDL_Window);
 
-	if (m_bIsMousePressed)
-		RaycastToMouse();
-
-	StartGuiUpdate();
-	
-	DisplayMenuBar();
-	DisplayAllScripts();
-	DisplaySelectionParameters();
-	DisplayFreezeBtn();
-
-	EndGuiUpdate();
-	
 	m_pRenderWindow->windowMovedOrResized();
 }
 
 void RenderEngine::RT_SetCurrentMouseState(bool isPressed, Ogre::Vector2 mousePos) 
 {
-	m_bIsMousePressed = isPressed;
-	m_vecMousePos = mousePos;
+	//m_bIsMousePressed = isPressed;
+	//m_vecMousePos = mousePos;
 }
 
-void RenderEngine::DisplayMenuBar() 
+void RenderEngine::RT_ProcessSDLInput() 
 {
-	if (ImGui::BeginMainMenuBar())
+	SDL_Event event;
+	bool processed;
+	SDL_PumpEvents();
+	std::vector<SDL_Event> notProcessedEvents;
+	while (SDL_PollEvent(&event))
 	{
-		if (ImGui::BeginMenu("File"))
+		processed = false;
+		if (event.window.windowID == SDL_GetWindowID(m_SDL_Window))
 		{
-			if (ImGui::MenuItem("Save", "CTRL+S")) {}
-			if (ImGui::MenuItem("Load", "")) {}
-			ImGui::EndMenu();
+			if (event.type == SDL_MOUSEBUTTONDOWN)
+				if (event.button.button == SDL_BUTTON_LEFT)
+				{
+					int x, y;
+					SDL_GetMouseState(&x, &y);
+					m_vecMousePos = Ogre::Vector2(x, y);
+					RT_RaycastToMouse();
+				}
+			//w->SetImguiContext();
+			//ImGui_ImplSDL2_ProcessEvent(&event);
+			processed = true;
 		}
-		ImGui::EndMainMenuBar();
+		if (!processed) {
+			notProcessedEvents.push_back(event);
+		}
+		if (event.window.event == SDL_WINDOWEVENT_CLOSE)
+			m_bQuit = true;
+	}
+	
+	for (auto ev : notProcessedEvents) {
+		SDL_PushEvent(&ev);
 	}
 }
 
-void RenderEngine::DisplaySelectionParameters()
+Ogre::SceneNode* RenderEngine::RT_RaycastToMouse()
 {
-	if (m_pCurSelection)
-	{
-		ImGui::Begin("Parameters");
-		ImGui::Text(m_pCurSelection->getName().c_str());
-		
-		static float posVec[3] = { 0.f, 0.f, 0.f};
-		posVec[0] = float(m_pCurSelection->getPosition().x);
-		posVec[1] = float(m_pCurSelection->getPosition().y);
-		posVec[2] = float(m_pCurSelection->getPosition().z);
-		ImGui::InputFloat3("Position", posVec);
 
-		static int rotVec[3] = { 0, 0, 0 };
-		rotVec[0] = int(m_pCurSelection->getOrientation().getPitch().valueDegrees());
-		rotVec[1] = int(m_pCurSelection->getOrientation().getYaw().valueDegrees());
-		rotVec[2] = int(m_pCurSelection->getOrientation().getRoll().valueDegrees());
-		ImGui::InputInt3("Rotation", rotVec);
-		ImGui::End();
-
-		m_pCurSelection->setPosition(posVec[0], posVec[1], posVec[2]);
-
-		Ogre::Quaternion q = m_pCurSelection->getOrientation();
-		int clampedX = std::clamp(rotVec[0], -180, 180);
-		if (clampedX != int(m_pCurSelection->getOrientation().getPitch().valueDegrees()))
-		{
-			Ogre::Radian radX = Ogre::Radian(Ogre::Degree(clampedX));
-			Ogre::Radian offsetX = radX - m_pCurSelection->getOrientation().getPitch();
-			q.FromAngleAxis(offsetX, Ogre::Vector3::UNIT_X);
-			q = q* m_pCurSelection->getOrientation();
-			m_pCurSelection->setOrientation(q);
-			return;
-		}
-
-		int clampedY = std::clamp(rotVec[1], -180, 180);
-		if (clampedY != int(m_pCurSelection->getOrientation().getYaw().valueDegrees()))
-		{
-			Ogre::Radian radY = Ogre::Radian(Ogre::Degree(clampedY));
-			Ogre::Radian offsetY = radY - m_pCurSelection->getOrientation().getYaw();
-			q.FromAngleAxis(offsetY, Ogre::Vector3::UNIT_Y);
-			q = q * m_pCurSelection->getOrientation();
-			m_pCurSelection->setOrientation(q);
-			return;
-		}
-
-		int clampedZ = std::clamp(rotVec[2], -180, 180);
-		if (clampedZ != int(m_pCurSelection->getOrientation().getRoll().valueDegrees()))
-		{
-			Ogre::Radian radZ = Ogre::Radian(Ogre::Degree(clampedZ));
-			Ogre::Radian offsetZ = radZ - m_pCurSelection->getOrientation().getRoll();
-			q.FromAngleAxis(offsetZ, Ogre::Vector3::UNIT_Z);
-			q = q * m_pCurSelection->getOrientation();
-			m_pCurSelection->setOrientation(q);
-			return;
-		}
-	}
-}
-
-void RenderEngine::DisplayAllScripts()
-{
-	ImGui::Begin("Scripts");
-	std::string path = "D:\\MIPT\\Game-engines\\GameEnginesPractice\\GameEnginesPractice\\Scripts";
-	for (const auto& entry : std::filesystem::directory_iterator(path))
-	{
-		if (std::filesystem::is_regular_file(entry) && entry.path().extension() == ".lua")
-		{
-			std::string btnName = entry.path().filename().string();
-			if (ImGui::Button(btnName.c_str()))
-			{
-				std::string command = "start notepad++ " + entry.path().string();
-				std::system(command.c_str());
-			}
-		}
-	}
-	ImGui::End();
-}
-
-void RenderEngine::DisplayFreezeBtn() 
-{
-	ImGui::Begin("lol");
-	ImGui::Checkbox("F", &m_bIsFreeze);
-	ImGui::End();
-}
-
-void RenderEngine::RaycastToMouse()
-{
 	Ogre::Ray ray = m_pCamera->getCameraToViewportRay(float(m_vecMousePos.x) /m_pRenderWindow->getWidth(), float(m_vecMousePos.y) / m_pRenderWindow->getHeight());
 	Ogre::RaySceneQuery* query = m_pSceneManager->createRayQuery(ray);
 	query->setSortByDistance(true);
 
-	bool mMovableFound = false;
 	Ogre::RaySceneQueryResult& result = query->execute();
 	if (!result.empty()) 
 	{
@@ -203,21 +123,7 @@ void RenderEngine::RaycastToMouse()
 	}
 	
 	m_pSceneManager->destroyQuery(query);
-}
-
-void RenderEngine::StartGuiUpdate() 
-{
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame(m_SDL_Window);
-	ImGui::NewFrame();
-}
-
-void RenderEngine::EndGuiUpdate()
-{
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	SDL_GL_SwapWindow(m_SDL_Window);
-	m_pRenderWindow->windowMovedOrResized();
+	return m_pCurSelection;
 }
 
 void RenderEngine::RT_Init()
@@ -321,39 +227,9 @@ SceneObject* RenderEngine::RT_CreateSceneObject(Ogre::String actorName, Ogre::St
 
 void RenderEngine::RT_InitSDL() 
 {
-	SDL_Init(SDL_INIT_VIDEO);
-
-	// GL 3.0 + GLSL 130
-	const char* glsl_version = "#version 130";
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-	m_SDL_Window = SDL_CreateWindow("SDL Ogre Engine ", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
-
 	m_GL_Context = SDL_GL_CreateContext(m_SDL_Window);
 	SDL_GL_MakeCurrent(m_SDL_Window, m_GL_Context);
 	SDL_GL_SetSwapInterval(0.5);
-
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.WantCaptureKeyboard = true;
-	Ogre::LogManager::getSingleton().logMessage(std::to_string(io.WantCaptureKeyboard));
-
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsClassic();
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForOpenGL(m_SDL_Window, m_GL_Context);
-	bool f = ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
 void RenderEngine::RT_SDLClenup()

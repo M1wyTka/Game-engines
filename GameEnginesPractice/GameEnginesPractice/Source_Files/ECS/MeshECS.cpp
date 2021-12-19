@@ -21,12 +21,13 @@ void LoadMeshCreationSystem(flecs::world& world, flecs::query<RenderEnginePtr>& 
             });
 
     world.system<const SceneObjectPattern, const Kinematics>()
-        .kind(flecs::OnLoad)
+        .kind(flecs::PreUpdate)
         .each([&](flecs::entity e, const SceneObjectPattern& stencil, const Kinematics& kins)
             {
                 renderQuery.each([&](RenderEnginePtr rendEngine)
                     {
-                        if (rendEngine.ptr->IsInitialized())
+                        if (rendEngine.ptr->IsInitialized()) 
+                        {
                             rendEngine.ptr->GetRT()->RC_LambdaAction([=] {
                                 SceneObject* temp = rendEngine.ptr->RT_CreateSceneObject(stencil.name, stencil.meshName);
                                 temp->SetVisibility(stencil.isVisible);
@@ -34,8 +35,9 @@ void LoadMeshCreationSystem(flecs::world& world, flecs::query<RenderEnginePtr>& 
                                 //temp->Rotate(kins.Rotation);
                                 temp->SetScale(kins.Scale);
                                 e.set<SceneObj>(SceneObj{ temp });
-                                e.remove<SceneObjectPattern>();
                             });
+                            e.remove<SceneObjectPattern>();
+                        }   
                     });
             });
 }

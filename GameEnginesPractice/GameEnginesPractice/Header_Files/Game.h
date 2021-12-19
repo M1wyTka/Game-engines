@@ -5,6 +5,7 @@
 #include "AdjacentSystems/InputHandler.h"
 #include "AdjacentSystems/GameTimer.h"
 #include "AdjacentSystems/ProjectLoader.h"
+#include "WindowManagement/EditorWindow.h"
 
 #include "ResourceManager.h"
 
@@ -47,6 +48,7 @@ private:
 	std::unique_ptr<ResourceManager> m_pResourceManager;
 	std::unique_ptr<InputHandler> m_pInputHandler;
 	std::unique_ptr<ProjectLoader> m_pProjectLoader;
+	std::unique_ptr<EditorWindow> m_pEditorWindow;
 	//std::unique_ptr<ScriptSystem> m_pScriptSystem;
 	//std::unique_ptr<EntityManager> m_pEntityManager;
 

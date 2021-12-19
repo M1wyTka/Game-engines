@@ -4,6 +4,18 @@
 Game::Game() :
 	m_pRenderEngine(nullptr)
 {
+
+	const char* glsl_version = "#version 130";
+	SDL_Init(SDL_INIT_VIDEO);
+
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 	// Create ecsworld
 	m_pECSworld = std::unique_ptr<flecs::world>(new flecs::world());
 
@@ -11,14 +23,14 @@ Game::Game() :
 	m_pFileSystem = std::unique_ptr<FileSystem>(new FileSystem());
 	m_pInputHandler = std::unique_ptr<InputHandler>(new InputHandler(m_pFileSystem->GetMediaRoot()));
 	m_pResourceManager = std::unique_ptr<ResourceManager>(new ResourceManager(m_pFileSystem.get()));
+
 	m_pRenderEngine = std::unique_ptr<RenderEngine>(new RenderEngine(m_pResourceManager.get()));
+	m_pEditorWindow = std::unique_ptr<EditorWindow>(new EditorWindow(m_pRenderEngine.get()));
+
 	m_pProjectLoader = std::unique_ptr<ProjectLoader>(new ProjectLoader());
 	//m_pScriptSystem = std::unique_ptr<ScriptSystem>(new ScriptSystem(m_pInputHandler.get(), m_pFileSystem->GetScriptsRoot()));
 	//m_pEntityManager = std::unique_ptr<EntityManager>(new EntityManager(m_pRenderEngine.get(), m_pScriptSystem.get(), m_pECSworld.get()));
-
-	// Create script system
-
-
+	
 	// Handlers
 	auto inputHandler = m_pECSworld->entity("inputHandler")
 		.set(InputHandlerPtr{ m_pInputHandler.get() });
@@ -44,18 +56,12 @@ Game::~Game()
 void Game::Run()
 {
 	m_Timer.Reset();
-	//m_pRenderEngine->GetRT()->RC_EndFrame();
-	//LoadGameWorld();
+
+	m_pRenderEngine->GetRT()->RC_EndFrame();
+	LoadGameWorld();
 
 	while (!m_pRenderEngine->GetQuit())
 	{
-
-		static bool isDone = false;
-		if (!isDone && m_pRenderEngine->IsInitialized())
-		{
-			GenerateSolarSystem();
-			isDone = true;
-		}
 		//	/*
 		//	Possible additions:
 		//		I have to add 2 different states for game engine: editor state and game state
@@ -77,21 +83,30 @@ void Game::Run()
 bool Game::UpdateAllSystems() 
 {
 	m_pRenderEngine->GetRT()->RC_BeginFrame();
-	if (m_pInputHandler)
-		m_pInputHandler->Update();
+	
+	m_pEditorWindow->Update();
 
-	if (m_pInputHandler->GetQuit() || !Update())
+	m_pRenderEngine->GetRT()->RC_LambdaAction([&] {
+		//m_pRenderEngine->RT_SetCurrentMouseState(m_pInputHandler->IsMousePressed(), m_pInputHandler->GetMousePosition());
+		m_pRenderEngine->RT_ProcessSDLInput();
+		m_pEditorWindow->SetSelection(m_pRenderEngine->GetSelection());
+		
+	});
+
+	//if (m_pInputHandler)
+	//	m_pInputHandler->Update();
+
+	if (m_pInputHandler->IsQuit() || m_pEditorWindow->IsQuit() || !Update())
 	{
 		m_pRenderEngine->GetRT()->RC_LambdaAction([=] { 
 			m_pRenderEngine->RT_SDLClenup();
-			});
+		});
+
 		m_pProjectLoader->SaveProject(m_pFileSystem->GetProjectFile(), m_pRenderEngine->GetRenderedObjects());
+		
 		return false;
 	}
 
-	m_pRenderEngine->GetRT()->RC_LambdaAction([=] {
-		m_pRenderEngine->RT_SetCurrentMouseState(m_pInputHandler->IsMousePressed(), m_pInputHandler->GetMousePosition());
-		});
 	
 	m_Timer.Tick();
 	m_pRenderEngine->GetRT()->RC_EndFrame();
@@ -104,12 +119,12 @@ bool Game::LoadGameWorld()
 	while (!m_pRenderEngine->IsInitialized())
 	{}
 	GenerateSolarSystem();
-		return true;
+	return true;
 }
 
 bool Game::Update()
 {
-	if(!m_pRenderEngine->IsFrozen())
+	if(!m_pEditorWindow->IsFrozen())
 		m_pECSworld->progress();
 	return true;
 }

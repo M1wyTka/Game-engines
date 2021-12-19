@@ -33,7 +33,9 @@ add_executable (GameEnginesPractice WIN32 "Source_Files/GameEnginesPractice.cpp"
                                           "Source_Files/ECS/ControlECS.cpp" 
                                           "Source_Files/ECS/GeneralECS.cpp" 
                                           "Source_Files/ECS/KinematicsECS.cpp" 
-                                          "Source_Files/AdjacentSystems/ProjectLoader.cpp")
+                                          "Source_Files/AdjacentSystems/ProjectLoader.cpp"
+                                          "Source_Files/WindowManagement/EditorWindow.cpp"
+                                          "Source_Files/ScriptSystem/EntityManager.cpp")
                                           #"Source_Files/AdjacentSystems/WindowManager.cpp"
                                           #"Source_Files/AdjacentSystems/LWindow.cpp"
                                           #"Source_Files/AdjacentSystems/EditorLWindow.cpp"

@@ -104,8 +104,7 @@ void InputHandler::ReadMappedButtonInput()
 	for (auto& it : m_inputEventMap)
 	{
 		m_InputState.set(it.second, IsKeyDown(it.first));
-	}
-	
+	}	
 }
 
 void InputHandler::ReadMouseInput() 
