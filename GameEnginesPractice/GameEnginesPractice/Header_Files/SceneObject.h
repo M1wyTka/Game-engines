@@ -26,9 +26,12 @@ public:
 	Ogre::Quaternion GetOrientation() const;
 
 	void SetVisibility(bool newState);
+
+	Ogre::String GetMeshName();
 	
 private:
 	Ogre::String m_strName;
+	Ogre::String m_strMeshName;
 	Ogre::SceneNode* m_pSceneNode;
 };
 

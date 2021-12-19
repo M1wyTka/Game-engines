@@ -4,6 +4,7 @@
 #include "AdjacentSystems/FileSystem.h"
 #include "AdjacentSystems/InputHandler.h"
 #include "AdjacentSystems/GameTimer.h"
+#include "AdjacentSystems/ProjectLoader.h"
 
 #include "ResourceManager.h"
 
@@ -14,14 +15,13 @@
 #include <vector>
 #include <memory>
 
-#include "ECS/flecs.h"
+#include "flecs.h"
 #include "ECS/GeneralECS.h"
 #include "ECS/PhysECS.h"
 #include "ECS/MeshECS.h"
 #include "ECS/ControlECS.h"
 #include "ECS/KinematicsECS.h"
 
-#include "GUI/GUISceneHierarchy.h"
 
 class Game
 {
@@ -37,6 +37,8 @@ public:
 	bool UpdateECSSystems();
 
 private:
+
+	bool LoadGameWorld();
 	GameTimer m_Timer;
 
 	std::unique_ptr<flecs::world> m_pECSworld;
@@ -44,6 +46,7 @@ private:
 	std::unique_ptr<FileSystem> m_pFileSystem;
 	std::unique_ptr<ResourceManager> m_pResourceManager;
 	std::unique_ptr<InputHandler> m_pInputHandler;
+	std::unique_ptr<ProjectLoader> m_pProjectLoader;
 	//std::unique_ptr<ScriptSystem> m_pScriptSystem;
 	//std::unique_ptr<EntityManager> m_pEntityManager;
 

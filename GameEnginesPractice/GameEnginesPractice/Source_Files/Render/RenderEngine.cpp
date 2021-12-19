@@ -1,6 +1,6 @@
 #include "Render/RenderEngine.h"
 
-RenderEngine::RenderEngine(ResourceManager* pResourceManager, flecs::world* world) :
+RenderEngine::RenderEngine(ResourceManager* pResourceManager) :
 	m_pRoot(nullptr),
 	m_pRenderWindow(nullptr),
 	m_pSceneManager(nullptr),
@@ -14,8 +14,7 @@ RenderEngine::RenderEngine(ResourceManager* pResourceManager, flecs::world* worl
 	m_bQuit(false),
 	m_bSelectionChanged(false),
 	m_bIsFreeze(false),
-	m_pResourceManager(pResourceManager),
-	m_pECSWorld(world)
+	m_pResourceManager(pResourceManager)
 {
 	m_pRT = std::unique_ptr<RenderThread>(new RenderThread(this));
 

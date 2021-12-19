@@ -59,3 +59,8 @@ void SceneObject::SetVisibility(bool newState)
 {
 	m_pSceneNode->setVisible(newState);
 }
+
+Ogre::String SceneObject::GetMeshName() 
+{
+	return (static_cast<Ogre::Item*> (m_pSceneNode->getAttachedObject(0)))->getMesh()->getName();
+}

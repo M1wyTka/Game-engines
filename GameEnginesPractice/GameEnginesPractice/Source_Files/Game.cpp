@@ -11,7 +11,8 @@ Game::Game() :
 	m_pFileSystem = std::unique_ptr<FileSystem>(new FileSystem());
 	m_pInputHandler = std::unique_ptr<InputHandler>(new InputHandler(m_pFileSystem->GetMediaRoot()));
 	m_pResourceManager = std::unique_ptr<ResourceManager>(new ResourceManager(m_pFileSystem.get()));
-	m_pRenderEngine = std::unique_ptr<RenderEngine>(new RenderEngine(m_pResourceManager.get(), m_pECSworld.get()));
+	m_pRenderEngine = std::unique_ptr<RenderEngine>(new RenderEngine(m_pResourceManager.get()));
+	m_pProjectLoader = std::unique_ptr<ProjectLoader>(new ProjectLoader());
 	//m_pScriptSystem = std::unique_ptr<ScriptSystem>(new ScriptSystem(m_pInputHandler.get(), m_pFileSystem->GetScriptsRoot()));
 	//m_pEntityManager = std::unique_ptr<EntityManager>(new EntityManager(m_pRenderEngine.get(), m_pScriptSystem.get(), m_pECSworld.get()));
 
@@ -24,16 +25,13 @@ Game::Game() :
 	auto renderEngine = m_pECSworld->entity("renderEngine")
 		.set(RenderEnginePtr{ m_pRenderEngine.get() });
 
-	// Test entities
-
-
 	LoadMeshSystems(*m_pECSworld.get());
 	LoadControlSystems(*m_pECSworld.get());
 	LoadPhysSystems(*m_pECSworld.get());
 	LoadKinematicsSystems(*m_pECSworld.get());
 	
 	//GUISceneHierarchy(*m_pECSworld.get());
-
+	
 	m_Timer.Start();
 }
 
@@ -46,14 +44,23 @@ Game::~Game()
 void Game::Run()
 {
 	m_Timer.Reset();
-	
+	//m_pRenderEngine->GetRT()->RC_EndFrame();
+	//LoadGameWorld();
+
 	while (!m_pRenderEngine->GetQuit())
 	{
+
+		static bool isDone = false;
+		if (!isDone && m_pRenderEngine->IsInitialized())
+		{
+			GenerateSolarSystem();
+			isDone = true;
+		}
 		//	/*
 		//	Possible additions:
 		//		I have to add 2 different states for game engine: editor state and game state
 		//		Key binding system
-		//		flecs in parallel (OnUpdate part)
+		//		flecs in parallel (OnUpdate part) (if it's even possible)
 		//		flecs prefabs
 		//		flecs scenes
 		//		cullings
@@ -70,30 +77,34 @@ void Game::Run()
 bool Game::UpdateAllSystems() 
 {
 	m_pRenderEngine->GetRT()->RC_BeginFrame();
-
-	static bool isDone = false;
-	if (!isDone && m_pRenderEngine->IsInitialized())
-	{
-		GenerateSolarSystem();
-		isDone = true;
-	}
-
 	if (m_pInputHandler)
 		m_pInputHandler->Update();
 
-	m_Timer.Tick();
-
 	if (m_pInputHandler->GetQuit() || !Update())
 	{
-		m_pRenderEngine->GetRT()->RC_LambdaAction([=] { m_pRenderEngine->RT_SDLClenup(); });
+		m_pRenderEngine->GetRT()->RC_LambdaAction([=] { 
+			m_pRenderEngine->RT_SDLClenup();
+			});
+		m_pProjectLoader->SaveProject(m_pFileSystem->GetProjectFile(), m_pRenderEngine->GetRenderedObjects());
 		return false;
 	}
 
-	m_pRenderEngine->GetRT()->RC_LambdaAction([=] { m_pRenderEngine->RT_SetCurrentMouseState(m_pInputHandler->IsMousePressed(), m_pInputHandler->GetMousePosition()); });
-
+	m_pRenderEngine->GetRT()->RC_LambdaAction([=] {
+		m_pRenderEngine->RT_SetCurrentMouseState(m_pInputHandler->IsMousePressed(), m_pInputHandler->GetMousePosition());
+		});
+	
+	m_Timer.Tick();
 	m_pRenderEngine->GetRT()->RC_EndFrame();
 
 	return true;
+}
+
+bool Game::LoadGameWorld() 
+{
+	while (!m_pRenderEngine->IsInitialized())
+	{}
+	GenerateSolarSystem();
+		return true;
 }
 
 bool Game::Update()
@@ -105,6 +116,11 @@ bool Game::Update()
 
 void Game::GenerateSolarSystem()
 {
+	std::vector<Pawn>* candidates =  m_pProjectLoader->GetLevelEntities(m_pFileSystem->GetProjectFile());
+	for (const auto& candidate : *candidates)
+		Ogre::LogManager::getSingleton().logMessage(candidate.Name);
+
+
 	// V = sqrt(G*M/r)
 	auto player = m_pECSworld->entity()
 		.set(Kinematics{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) , Ogre::Vector3(0.f, 0.f, 0.f) , Ogre::Vector3(5, 5, 5) })
