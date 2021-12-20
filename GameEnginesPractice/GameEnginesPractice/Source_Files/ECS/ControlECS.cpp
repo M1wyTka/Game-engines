@@ -1,8 +1,11 @@
 #include "ECS/ControlECS.h"
 #include "ECS/MeshECS.h"
 #include "ECS/KinematicsECS.h"
+#include "ECS/GeneralECS.h"
+
 #define _USE_MATH_DEFINES
 #include <math.h>
+
 
 void LoadControlSystems(flecs::world& world) 
 {

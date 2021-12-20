@@ -16,7 +16,8 @@ public:
 	const std::string GetMediaRoot();
 	const std::string GetScriptsRoot();
 	const std::string GetCodeRoot();
-	const std::string GetProjectFile();
+	const std::string GetProjectLoadFile();
+	const std::string GetProjectSaveFile();
 
 	const std::string JoinPaths(const std::string& strA, const std::string& strB);
 
@@ -26,6 +27,7 @@ private:
 	inline static const std::filesystem::path m_pRootProjDir = m_pCurDir.parent_path().parent_path().parent_path().parent_path();
 	inline static const std::filesystem::path m_pMediaRoot = m_pRootProjDir / std::filesystem::path("Media");
 	inline static const std::filesystem::path m_pCodeDir = m_pRootProjDir / std::filesystem::path("GameEnginesPractice");
-	inline static const std::filesystem::path m_pScriptsRoot = m_pCodeDir / std::filesystem::path("Scripts");
-	inline static const std::filesystem::path m_pProjectFilePath = m_pMediaRoot / std::filesystem::path("Project.json");
+	inline static const std::filesystem::path m_pScriptsRoot = m_pMediaRoot / std::filesystem::path("Scripts");
+	inline static const std::filesystem::path m_pLoadProjectFilePath = m_pMediaRoot / std::filesystem::path("ProjectLoad.json");
+	inline static const std::filesystem::path m_pSaveProjectFilePath = m_pMediaRoot / std::filesystem::path("ProjectSave.json");
 };

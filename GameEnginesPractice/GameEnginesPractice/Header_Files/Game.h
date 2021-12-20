@@ -7,11 +7,9 @@
 #include "AdjacentSystems/ProjectLoader.h"
 #include "WindowManagement/EditorWindow.h"
 
+#include "ScriptSystem/EntityManager.h"
+#include "ScriptSystem/ScriptManager.h"
 #include "ResourceManager.h"
-
-#include "CelestialBody.h"
-#include "Bullet.h"
-#include "Universe.h"
 
 #include <vector>
 #include <memory>
@@ -49,6 +47,8 @@ private:
 	std::unique_ptr<InputHandler> m_pInputHandler;
 	std::unique_ptr<ProjectLoader> m_pProjectLoader;
 	std::unique_ptr<EditorWindow> m_pEditorWindow;
+	std::unique_ptr<ScriptManager> m_pScriptSystem;
+	std::unique_ptr<EntityManager> m_pEntityManager;
 	//std::unique_ptr<ScriptSystem> m_pScriptSystem;
 	//std::unique_ptr<EntityManager> m_pEntityManager;
 

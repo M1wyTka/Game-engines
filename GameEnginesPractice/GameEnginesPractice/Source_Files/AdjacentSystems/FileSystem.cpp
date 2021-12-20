@@ -23,9 +23,14 @@ const std::string FileSystem::GetScriptsRoot()
 	return m_pScriptsRoot.string();
 }
 
-const std::string FileSystem::GetProjectFile()
+const std::string FileSystem::GetProjectLoadFile()
 {
-	return m_pProjectFilePath.string();
+	return m_pLoadProjectFilePath.string();
+}
+
+const std::string FileSystem::GetProjectSaveFile()
+{
+	return m_pSaveProjectFilePath.string();
 }
 
 const std::string FileSystem::JoinPaths(const std::string& strA, const std::string& strB) 

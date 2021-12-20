@@ -1,6 +1,13 @@
 #include "ECS/MeshECS.h"
-#include "function2/function2.hpp"
+#include "ECS/PhysECS.h"
 #include "ECS/KinematicsECS.h"
+
+#include "function2/function2.hpp"
+#include "Render/RenderEngine.h"
+
+#include "OgreString.h"
+#include "OgreVector3.h"
+
 
 void LoadMeshSystems(flecs::world& world)
 {

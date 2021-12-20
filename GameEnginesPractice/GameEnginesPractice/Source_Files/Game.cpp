@@ -16,19 +16,22 @@ Game::Game() :
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
 	// Create ecsworld
-	m_pECSworld = std::unique_ptr<flecs::world>(new flecs::world());
+	m_pECSworld			= std::unique_ptr<flecs::world>(new flecs::world());
 
 	// Systems
-	m_pFileSystem = std::unique_ptr<FileSystem>(new FileSystem());
-	m_pInputHandler = std::unique_ptr<InputHandler>(new InputHandler(m_pFileSystem->GetMediaRoot()));
-	m_pResourceManager = std::unique_ptr<ResourceManager>(new ResourceManager(m_pFileSystem.get()));
+	m_pFileSystem		= std::unique_ptr<FileSystem>(new FileSystem());
+	m_pInputHandler		= std::unique_ptr<InputHandler>(new InputHandler(m_pFileSystem->GetMediaRoot()));
+	m_pResourceManager	= std::unique_ptr<ResourceManager>(new ResourceManager(m_pFileSystem.get()));
 
-	m_pRenderEngine = std::unique_ptr<RenderEngine>(new RenderEngine(m_pResourceManager.get()));
-	m_pEditorWindow = std::unique_ptr<EditorWindow>(new EditorWindow(m_pRenderEngine.get()));
+	m_pRenderEngine		= std::unique_ptr<RenderEngine>(new RenderEngine(m_pResourceManager.get()));
+	m_pEditorWindow		= std::unique_ptr<EditorWindow>(new EditorWindow(m_pRenderEngine.get(), m_pFileSystem->GetScriptsRoot()));
 
-	m_pProjectLoader = std::unique_ptr<ProjectLoader>(new ProjectLoader());
-	//m_pScriptSystem = std::unique_ptr<ScriptSystem>(new ScriptSystem(m_pInputHandler.get(), m_pFileSystem->GetScriptsRoot()));
+	m_pScriptSystem		= std::unique_ptr<ScriptManager>(new ScriptManager(m_pInputHandler.get(), m_pFileSystem->GetScriptsRoot()));
+	m_pEntityManager	= std::unique_ptr<EntityManager>(new EntityManager(m_pRenderEngine.get(), m_pScriptSystem.get(), m_pECSworld.get()));
+	m_pProjectLoader	= std::unique_ptr<ProjectLoader>(new ProjectLoader(m_pRenderEngine.get(), m_pEntityManager.get()));
+	
 	//m_pEntityManager = std::unique_ptr<EntityManager>(new EntityManager(m_pRenderEngine.get(), m_pScriptSystem.get(), m_pECSworld.get()));
 	
 	// Handlers
@@ -102,7 +105,7 @@ bool Game::UpdateAllSystems()
 			m_pRenderEngine->RT_SDLClenup();
 		});
 
-		m_pProjectLoader->SaveProject(m_pFileSystem->GetProjectFile(), m_pRenderEngine->GetRenderedObjects());
+		m_pProjectLoader->SaveProject(m_pFileSystem->GetProjectSaveFile(), m_pRenderEngine->GetRenderedObjects());
 		
 		return false;
 	}
@@ -131,11 +134,7 @@ bool Game::Update()
 
 void Game::GenerateSolarSystem()
 {
-	std::vector<Pawn>* candidates =  m_pProjectLoader->GetLevelEntities(m_pFileSystem->GetProjectFile());
-	for (const auto& candidate : *candidates)
-		Ogre::LogManager::getSingleton().logMessage(candidate.Name);
-
-
+	m_pProjectLoader->GetLevelEntities("");
 	// V = sqrt(G*M/r)
 	auto player = m_pECSworld->entity()
 		.set(Kinematics{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) , Ogre::Vector3(0.f, 0.f, 0.f) , Ogre::Vector3(5, 5, 5) })

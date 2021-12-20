@@ -1,5 +1,6 @@
-#include "OGRE/OgreVector3.h"
+#pragma once
 #include "flecs.h"
+#include "Ogre.h"
 
 struct Kinematics 
 {

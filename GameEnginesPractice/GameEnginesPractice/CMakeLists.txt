@@ -13,6 +13,7 @@ cmake_minimum_required (VERSION 3.18)
 
 #2
 find_package(OGRE)
+#find_package(Lua54 REQUIRED)
 add_executable (GameEnginesPractice WIN32 "Source_Files/GameEnginesPractice.cpp" 
                                           "Source_Files/Game.cpp"
                                           "Source_Files/AdjacentSystems/GameTimer.cpp" 
@@ -35,7 +36,10 @@ add_executable (GameEnginesPractice WIN32 "Source_Files/GameEnginesPractice.cpp"
                                           "Source_Files/ECS/KinematicsECS.cpp" 
                                           "Source_Files/AdjacentSystems/ProjectLoader.cpp"
                                           "Source_Files/WindowManagement/EditorWindow.cpp"
-                                          "Source_Files/ScriptSystem/EntityManager.cpp")
+                                          "Source_Files/ScriptSystem/EntityManager.cpp" 
+                                          "Source_Files/ECS/ScriptECS.cpp"
+                                          "Source_Files/ScriptSystem/Script.cpp"
+                                          "Source_Files/ScriptSystem/ScriptManager.cpp")
                                           #"Source_Files/AdjacentSystems/WindowManager.cpp"
                                           #"Source_Files/AdjacentSystems/LWindow.cpp"
                                           #"Source_Files/AdjacentSystems/EditorLWindow.cpp"
@@ -63,18 +67,19 @@ target_include_directories(GameEnginesPractice PRIVATE "${OGRE_PLACE}/Components
 target_include_directories(GameEnginesPractice PRIVATE "${OGRE_PLACE}/Components/Hlms/Unlit/include")
 target_include_directories(GameEnginesPractice PRIVATE "${OGRE_PLACE}/build/include")
 target_include_directories(GameEnginesPractice PRIVATE "${OGRE_PLACE}/build/sdk/include")
-target_link_libraries(GameEnginesPractice ${OGRE_LIBRARIES} ${OGRE_RenderSystem_Direct3D11_LIBRARIES} ${OGRE_HlmsUnlit_LIBRARIES} ${OGRE_HlmsPbs_LIBRARIES} ${OGRE_Plugin_ParticleFX_LIBRARIES} ${OGRE_Overlay_LIBRARIES} ${OGRE_RenderSystem_GL3Plus_LIBRARIES} ${OPENGL_LIBRARIES} $)
+target_link_libraries(GameEnginesPractice ${OGRE_LIBRARIES} ${OGRE_RenderSystem_Direct3D11_LIBRARIES} ${OGRE_HlmsUnlit_LIBRARIES} ${OGRE_HlmsPbs_LIBRARIES} ${OGRE_Plugin_ParticleFX_LIBRARIES} ${OGRE_Overlay_LIBRARIES} ${OGRE_RenderSystem_GL3Plus_LIBRARIES} ${OPENGL_LIBRARIES})
 
 
-target_include_directories(GameEnginesPractice PRIVATE "${SDKS_DIR}/Lua/include")
+target_include_directories(GameEnginesPractice PUBLIC "${SDKS_DIR}/Lua/include")
+target_link_libraries(GameEnginesPractice "D:/MIPT/Game-engines/SDKs/Lua/lua54.lib")
 
-CPMAddPackage(
-    NAME LuaBridge
-    GITHUB_REPOSITORY vinniefalco/LuaBridge
-    GIT_TAG 2.6
-)
-
-target_link_libraries(GameEnginesPractice LuaBridge)
+#CPMAddPackage(
+#    NAME LuaBridge
+#    GITHUB_REPOSITORY kunitoki/LuaBridge3
+#    GIT_TAG 2.6
+#)
+#
+#target_link_libraries(GameEnginesPractice LuaBridge)
 
 CPMAddPackage(
     NAME function2

@@ -3,21 +3,10 @@
 #include "Render/RenderEngine.h"
 #include "OgreSceneNode.h"
 
-//#include "SDL.h"
-//#include "SDL_opengl.h"
-//
-//#include "imgui.h"
-//#include "backends/imgui_impl_sdl.h"
-//#include "backends/imgui_impl_opengl3.h"
-//
-//#ifdef _WINDOWS
-//#include "SDL_syswm.h"
-//#endif 
-
 class EditorWindow
 {
 public:
-	EditorWindow(RenderEngine* renderEngine);
+	EditorWindow(RenderEngine* renderEngine, std::string criptRootPath);
 	~EditorWindow();
 
 	void Update();
@@ -26,7 +15,7 @@ public:
 
 	void SetSelection(Ogre::SceneNode* newSelection) { m_pCurrentSelection = newSelection; };
 private:
-
+	std::string m_strScriptRootPath;
 	bool m_bIsFrozen;
 	bool m_bIsClosed;
 

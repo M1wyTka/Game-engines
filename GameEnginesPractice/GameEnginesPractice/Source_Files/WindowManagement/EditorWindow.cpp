@@ -2,11 +2,12 @@
 #include <filesystem>
 #include <string>
 
-EditorWindow::EditorWindow(RenderEngine* renderEngine) :
+EditorWindow::EditorWindow(RenderEngine* renderEngine, std::string scriptRootPath) :
 	m_bIsClosed(false),
 	m_bIsFrozen(false),
 	m_pCurrentSelection(nullptr),
-	m_pRenderEngine(renderEngine)
+	m_pRenderEngine(renderEngine),
+	m_strScriptRootPath(scriptRootPath)
 {
 	InitWindow();
 }
@@ -186,8 +187,8 @@ void EditorWindow::DisplaySelectionParameters()
 void EditorWindow::DisplayAllScripts()
 {
 	ImGui::Begin("Scripts");
-	std::string path = "D:\\MIPT\\Game-engines\\GameEnginesPractice\\GameEnginesPractice\\Scripts";
-	for (const auto& entry : std::filesystem::directory_iterator(path))
+	//std::string path = "D:\\MIPT\\Game-engines\\GameEnginesPractice\\GameEnginesPractice\\Scripts";
+	for (const auto& entry : std::filesystem::directory_iterator(m_strScriptRootPath))
 	{
 		if (std::filesystem::is_regular_file(entry) && entry.path().extension() == ".lua")
 		{

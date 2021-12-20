@@ -1,12 +1,6 @@
 #pragma once
 #include "flecs.h"
 #include "GeneralECS.h"
-#include "PhysECS.h"
-
-#include "OgreString.h"
-#include "OgreVector3.h"
-
-#include "Render/RenderEngine.h"
 
 struct SceneObj
 {
