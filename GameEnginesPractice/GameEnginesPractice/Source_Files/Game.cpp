@@ -44,7 +44,7 @@ Game::Game() :
 	LoadControlSystems(*m_pECSworld.get());
 	LoadPhysSystems(*m_pECSworld.get());
 	LoadKinematicsSystems(*m_pECSworld.get());
-	
+	LoadScriptSystems(*m_pECSworld.get());
 	//GUISceneHierarchy(*m_pECSworld.get());
 	
 	m_Timer.Start();
@@ -91,13 +91,12 @@ bool Game::UpdateAllSystems()
 
 	m_pRenderEngine->GetRT()->RC_LambdaAction([&] {
 		//m_pRenderEngine->RT_SetCurrentMouseState(m_pInputHandler->IsMousePressed(), m_pInputHandler->GetMousePosition());
-		m_pRenderEngine->RT_ProcessSDLInput();
 		m_pEditorWindow->SetSelection(m_pRenderEngine->GetSelection());
 		
 	});
 
-	//if (m_pInputHandler)
-	//	m_pInputHandler->Update();
+	if (m_pInputHandler)
+		m_pInputHandler->Update();
 
 	if (m_pInputHandler->IsQuit() || m_pEditorWindow->IsQuit() || !Update())
 	{

@@ -44,10 +44,14 @@ SceneObject* SceneObjectProducer::Produce(Ogre::String actorName, Ogre::String m
 	Ogre::Item* item = LoadItem(meshToUse);
 	Ogre::SceneNode* node = LoadNode(item);
 
-	//m_pLogicVisualMapping.insert({ node, ent });
-	SceneObject* loadedObj = new SceneObject(name, node);
+	SceneObject* sceneObj = new SceneObject(name, node);
+
+	LoadedObject* loadedObj = new LoadedObject({ sceneObj, actorName, meshName });
+
 	m_pLoadedObjects.push_back(loadedObj);
-	return loadedObj;
+	//m_mpNameMeshName[name] = meshName;
+	
+	return sceneObj;
 }
 
 SceneObject* SceneObjectProducer::Produce(Ogre::String actorName)

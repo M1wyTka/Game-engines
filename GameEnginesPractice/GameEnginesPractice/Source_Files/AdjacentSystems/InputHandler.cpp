@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <windows.h>
 
-InputHandler::InputHandler(const std::string& strResourceRoot) : m_pMouseSensitivity(2)
+InputHandler::InputHandler(const std::string& strResourceRoot) : 
+	m_pMouseSensitivity(2)
 {
 	m_bMouseButtonDown = false;
 	m_bIsQuit = false;
@@ -33,6 +34,12 @@ bool InputHandler::IsKeyDown(size_t vk_key)
 	return false;
 }
 
+bool InputHandler::IsKeyActive(std::string keyName)
+{
+	size_t a = m_keyCommandMap[keyName];
+	return m_InputState.test(a);
+}
+
 void InputHandler::MapSymbol(std::string strSymbol, size_t nSymbol)
 {
 	m_symbolMap[strSymbol] = nSymbol;
@@ -42,12 +49,6 @@ void InputHandler::MapCommand(std::string strCommand, size_t nCommand)
 {
 	m_commandMap[strCommand] = nCommand;
 }
-
-//void InputHandler::MapCommandSymbol(std::string strCommand, size_t nCommand, std::string strDefaultSymbol)
-//{
-//	MapCommand(strCommand, nCommand);
-//	m_commandSymbolMap[strCommand] = strDefaultSymbol;
-//}
 
 void InputHandler::MapCommandSymbol(std::string strCommand, std::string strDefaultSymbol)
 {
@@ -96,7 +97,7 @@ void InputHandler::MapInputEvent(std::size_t nSymbol, size_t nCommand)
 void InputHandler::Update()
 {
 	ReadMappedButtonInput();
-	ReadMouseInput();
+	//ReadMouseInput();
 }
 
 void InputHandler::ReadMappedButtonInput() 
@@ -115,30 +116,38 @@ void InputHandler::ReadMouseInput()
 	SDL_GetMouseState(&x, &y);
 	m_pCurMousePos = Ogre::Vector2(x, y);
 	
-	SDL_PumpEvents();
-	SDL_Event event;
-	while (SDL_PollEvent(&event)) 
-	{
-		switch (event.type)
-		{
-		case SDL_MOUSEBUTTONDOWN:
-			if (event.button.button == SDL_BUTTON_LEFT)
-				m_bMouseButtonDown = true;
-			break;
-
-		case SDL_MOUSEBUTTONUP:
-			if (event.button.button == SDL_BUTTON_LEFT)
-				m_bMouseButtonDown = false;
-			break;
-
-		case SDL_QUIT:
-			m_bIsQuit = true;
-			break;
-
-		default:
-			break;
-		}
-	}
+	//SDL_PumpEvents();
+	//SDL_Event event;
+	//while(SDL_PollEvent(&event)) 
+	//{
+	//	if (event.window.windowID == SDL_GetWindowID(m_pRenderEngine->GetSDLWindow()))
+	//	{
+	//		m_pRenderEngine->GetRT()->RC_LambdaAction([=] {
+	//			m_pRenderEngine->RT_ProcessSDLEvent(event);
+	//			});
+	//	}
+	//	else {
+	//		switch (event.type)
+	//		{
+	//		case SDL_MOUSEBUTTONDOWN:
+	//			if (event.button.button == SDL_BUTTON_LEFT)
+	//				m_bMouseButtonDown = true;
+	//			break;
+	//
+	//		case SDL_MOUSEBUTTONUP:
+	//			if (event.button.button == SDL_BUTTON_LEFT)
+	//				m_bMouseButtonDown = false;
+	//			break;
+	//
+	//		case SDL_QUIT:
+	//			m_bIsQuit = true;
+	//			break;
+	//
+	//		default:
+	//			break;
+	//		}
+	//	}
+	//}
 }
 
 const std::bitset<eIC_Max>& InputHandler::GetInputState() const
@@ -186,13 +195,18 @@ void InputHandler::FillCommandMap()
 	MapCommand("GoDown", eIC_GoDown);
 	MapCommand("Shoot", eIC_Shoot);
 	MapCommand("Faster", eIC_Faster);
+
+	m_keyCommandMap["a"] = eIC_GoLeft;
+	m_keyCommandMap["d"] = eIC_GoRight;
+	m_keyCommandMap["w"] = eIC_GoUp;
+	m_keyCommandMap["s"] = eIC_GoDown;
 }
 
 void InputHandler::FillCommandSymbolMap()
 {
-	//MapCommandSymbol("GoLeft", "a");
-	//MapCommandSymbol("GoRight", "d");
-	//MapCommandSymbol("GoUp", "w");
-	//MapCommandSymbol("GoDown", "s");
-	//MapCommandSymbol("Shoot", "q");
+	MapCommandSymbol("GoLeft", "a");
+	MapCommandSymbol("GoRight", "d");
+	MapCommandSymbol("GoUp", "w");
+	MapCommandSymbol("GoDown", "s");
+	MapCommandSymbol("Shoot", "q");
 }

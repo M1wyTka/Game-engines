@@ -21,7 +21,7 @@ public:
 	
 	std::vector<Pawn>* GetLevelEntities(const std::string& projectFilePath);
 
-	void SaveProject(std::string outFilePath, std::vector<SceneObject*>* objectsToSave);
+	void SaveProject(std::string outFilePath, std::vector<LoadedObject*>* objectsToSave);
 	void LoadProject();
 
 private:

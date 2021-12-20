@@ -47,18 +47,7 @@ std::vector<Pawn>* ProjectLoader::ReadLevelField(const nlohmann::json& projectJs
 				{
 					for (int i = 0; i < val.value().size(); i++)
 					{
-						/*"name": "lol2",
-						  "script" : "pawn.lua",
-						  "components" : {
-						  "Mesh": "ogrehead.mesh",
-						  	"Position" : [
-						  		0.0,
-						  		0.0,
-						  		0.0
-						  	]
-						}*/
-						//.set(Kinematics{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) , Ogre::Vector3(0.f, 0.f, 0.f) , Ogre::Vector3(1.f, 1.f, 1.f) })
-						//	.set(SceneObjectPattern{ Ogre::String("sun"), Ogre::String("penguin.mesh"), true })
+						
 						Ogre::LogManager::getSingleton().logMessage(val.value()[i]["name"].get<std::string>() + " : " + val.value()[i]["script"].get<std::string>());
 						pwns->emplace_back(val.value()[i]["name"].get<std::string>(), val.value()[i]["script"].get<std::string>());
 
@@ -68,8 +57,8 @@ std::vector<Pawn>* ProjectLoader::ReadLevelField(const nlohmann::json& projectJs
 						auto pos = val.value()[i]["components"]["position"];
 
 						m_pEntityManager->CreateEntity(script,
-							{ name, meshName, true },
-							{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) , Ogre::Vector3(pos[0], pos[1], pos[2]) , Ogre::Vector3(20.f, 1.f, 1.f) });
+						{ name, meshName, true },
+	 	 				{ Ogre::Quaternion(Ogre::Quaternion::IDENTITY) , Ogre::Vector3(pos[0], pos[1], pos[2]) , Ogre::Vector3(20.f, 1.f, 1.f) });
 						////HERE
 					}
 				}
@@ -106,18 +95,34 @@ void ProjectLoader::ReadLevelTerrain(const nlohmann::json& projectJson)
 
 }
 
-void ProjectLoader::SaveProject(std::string outFilePath, std::vector<SceneObject*>* objectsToSave)
+void ProjectLoader::SaveProject(std::string outFilePath, std::vector<LoadedObject*>* objectsToSave)
 {
 	nlohmann::json arr = nlohmann::json::array();
-	
+	/*"name": "lol",
+		"script" : "pawn.lua",
+		"components" : {
+		"mesh": "ogrehead.mesh",
+			"position" : [
+				1.0,
+					0.0,
+					0.0
+			] ,
+			"velocity" : [
+				0.0,
+					0.0,
+					0.0
+			]
+	}*/
 	std::vector<Pawn> pwns;
 	for (const auto& item : *objectsToSave) 
 	{
+		nlohmann::json position = nlohmann::json::array({ item->object->GetPosition().x, item->object->GetPosition().y, item->object->GetPosition().z });
 		nlohmann::json ent = {
-			{"name", item->GetName() },
-			{"script", "lol"},
+			{"name", item->initialName },
+			{"script", "pawn.lua"},
 			{"components", {
-				{"mesh", item->GetMeshName()}
+				{ "mesh", item->initialMeshName },
+				{ "position", position }
 				}
 			}
 		};

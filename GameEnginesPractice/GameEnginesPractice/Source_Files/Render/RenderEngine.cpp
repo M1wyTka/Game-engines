@@ -73,39 +73,18 @@ void RenderEngine::RT_SetCurrentMouseState(bool isPressed, Ogre::Vector2 mousePo
 	//m_vecMousePos = mousePos;
 }
 
-void RenderEngine::RT_ProcessSDLInput() 
+void RenderEngine::RT_ProcessSDLEvent(SDL_Event event)
 {
-	SDL_Event event;
-	bool processed;
-	SDL_PumpEvents();
-	std::vector<SDL_Event> notProcessedEvents;
-	while (SDL_PollEvent(&event))
-	{
-		processed = false;
-		if (event.window.windowID == SDL_GetWindowID(m_SDL_Window))
+	if (event.type == SDL_MOUSEBUTTONDOWN)
+		if (event.button.button == SDL_BUTTON_LEFT)
 		{
-			if (event.type == SDL_MOUSEBUTTONDOWN)
-				if (event.button.button == SDL_BUTTON_LEFT)
-				{
-					int x, y;
-					SDL_GetMouseState(&x, &y);
-					m_vecMousePos = Ogre::Vector2(x, y);
-					RT_RaycastToMouse();
-				}
-			//w->SetImguiContext();
-			//ImGui_ImplSDL2_ProcessEvent(&event);
-			processed = true;
+			int x, y;
+			SDL_GetMouseState(&x, &y);
+			m_vecMousePos = Ogre::Vector2(x, y);
+			RT_RaycastToMouse();
 		}
-		if (!processed) {
-			notProcessedEvents.push_back(event);
-		}
-		if (event.window.event == SDL_WINDOWEVENT_CLOSE)
-			m_bQuit = true;
-	}
-	
-	for (auto ev : notProcessedEvents) {
-		SDL_PushEvent(&ev);
-	}
+	if (event.window.event == SDL_WINDOWEVENT_CLOSE)
+		m_bQuit = true;
 }
 
 Ogre::SceneNode* RenderEngine::RT_RaycastToMouse()
@@ -192,7 +171,7 @@ void RenderEngine::RT_SetupDefaultCompositor()
 
 	if (!compositorManager->hasWorkspaceDefinition(workspaceName))
 	{
-		compositorManager->createBasicWorkspaceDef(workspaceName, Ogre::ColourValue::Blue);
+		compositorManager->createBasicWorkspaceDef(workspaceName, Ogre::ColourValue::ColourValue(0.85, 0.19, 0.06, 1));
 	}
 	
 	m_pWorkspace = std::unique_ptr<Ogre::CompositorWorkspace>

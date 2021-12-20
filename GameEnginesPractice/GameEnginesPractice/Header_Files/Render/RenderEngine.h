@@ -49,17 +49,19 @@ public:
 	
 	void RT_SetCurrentMouseState(bool isPressed, Ogre::Vector2 mousePos);
 	SceneObject* RT_CreateSceneObject(Ogre::String actorName, Ogre::String meshName);
-	std::vector<SceneObject*>* GetRenderedObjects() { return m_pSceneObjectProducer->GetLoadedObjects(); }
+	std::vector<LoadedObject*>* GetRenderedObjects() { return m_pSceneObjectProducer->GetLoadedObjects(); }
 
 	RenderThread* GetRT() const   { return m_pRT.get(); }
 	Ogre::Camera* GetMainCamera() { return m_pCamera.get(); }
 	
 	bool IsInitialized() { return m_bIsInitialized; }
 
-	void RT_ProcessSDLInput();
+	void RT_ProcessSDLEvent(SDL_Event event);
 	void RT_SDLClenup();
 	Ogre::SceneNode* RT_RaycastToMouse();
+	
 	Ogre::SceneNode* GetSelection() const { return m_pCurSelection; };
+	SDL_Window* GetSDLWindow() const { return m_SDL_Window; };
 
 private:
 

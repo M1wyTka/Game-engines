@@ -20,10 +20,10 @@ void LoadControlSystems(flecs::world& world)
                     {
                         inputQuery.each([&](InputHandlerPtr input)
                         {
-                            Ogre::Vector2 inputVec;
-                            GetWASDVector(input.ptr, inputVec);
-                            Ogre::Vector3 deltaVel = ctr.ControllSpeed * Ogre::Vector3(inputVec.x, inputVec.y, 0) * e.delta_time();
-                            offset.DeltaPos += deltaVel;
+                            //Ogre::Vector2 inputVec;
+                            //GetWASDVector(input.ptr, inputVec);
+                            //Ogre::Vector3 deltaVel = ctr.ControllSpeed * Ogre::Vector3(inputVec.x, inputVec.y, 0) * e.delta_time();
+                            //offset.DeltaPos += deltaVel;
                         });
                     }
                 });
@@ -43,15 +43,16 @@ void LoadControlSystems(flecs::world& world)
                                 if (input.ptr->GetInputState().test(eIC_Faster))
                                     speed *= 2;
                                 Ogre::Vector3 deltaVel = speed * Ogre::Vector3(inputVec.x, 0, -inputVec.y) * e.delta_time();
+
                                 Ogre::Vector2 pressedDeltaMouse = input.ptr->DeltaDownMousePos() * input.ptr->GetMouseSensitivity();
                                 pressedDeltaMouse *= e.delta_time();
-
+                                
                                 Ogre::Radian offset = Ogre::Radian(pressedDeltaMouse.y);
                                 Ogre::Radian newVal = cam.ptr->getRealOrientation().getPitch() + offset;
                                 
                                 Ogre::Radian clamped = std::clamp(newVal, -Ogre::Radian(M_PI / 2), Ogre::Radian(M_PI / 2));
                                 offset = clamped - cam.ptr->getRealOrientation().getPitch();
-
+                                
                                 rendEngine.ptr->GetRT()->RC_LambdaAction([=] { 
                                         cam.ptr->moveRelative(deltaVel);
                                         cam.ptr->yaw(Ogre::Radian(-pressedDeltaMouse.x));

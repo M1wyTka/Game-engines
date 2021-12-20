@@ -1,5 +1,6 @@
 #pragma once
 #include "Input.h"
+#include "Render/RenderEngine.h"
 
 #include <string>
 #include <unordered_map>
@@ -33,6 +34,7 @@ public:
 
 	bool IsMousePressed() const { return m_bMouseButtonDown; }
 	Ogre::Vector2 GetMousePosition() const { return m_pCurMousePos; }
+	bool IsKeyActive(std::string keyName);
 
 private:
 	void LoadConfiguration();
@@ -68,6 +70,8 @@ private:
 	TInputEventMap m_inputEventMap;
 	TCommandSymbolMap m_commandSymbolMap;
 	TCommandStack m_commandStack;
+
+	std::unordered_map<std::string, size_t> m_keyCommandMap;
 
 	std::bitset<eIC_Max> m_InputState;
 	bool m_bMouseButtonDown;

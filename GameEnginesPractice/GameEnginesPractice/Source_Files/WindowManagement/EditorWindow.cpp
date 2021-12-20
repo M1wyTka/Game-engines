@@ -20,27 +20,23 @@ EditorWindow::~EditorWindow()
 void EditorWindow::ProcessSDLInput() 
 {
 	SDL_Event event;
-	bool processed;
 	SDL_PumpEvents();
 	std::vector<SDL_Event> notProcessedEvents;
 	while (SDL_PollEvent(&event))
 	{
-		processed = false;
 		if (event.window.windowID == SDL_GetWindowID(m_SDLWindow))
 		{
-			//w->SetImguiContext();
 			ImGui_ImplSDL2_ProcessEvent(&event);
-			processed = true;
 		}
-		if (!processed) {
-			notProcessedEvents.push_back(event);
+
+		if (event.window.windowID == SDL_GetWindowID(m_pRenderEngine->GetSDLWindow()))
+		{
+			m_pRenderEngine->GetRT()->RC_LambdaAction([=] {
+				m_pRenderEngine->RT_ProcessSDLEvent(event);
+				});
 		}
 		if (event.window.event == SDL_WINDOWEVENT_CLOSE)
 			m_bIsClosed = true;
-	}
-	
-	for (auto ev : notProcessedEvents) {
-		SDL_PushEvent(&ev);
 	}
 }
 

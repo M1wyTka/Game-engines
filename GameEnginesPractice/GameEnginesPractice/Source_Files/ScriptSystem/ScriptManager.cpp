@@ -14,7 +14,7 @@ ScriptManager::~ScriptManager()
 
 Script* ScriptManager::CreateScript(std::string strScriptName, flecs::entity entity)
 {
-	std::string strScriptPath = m_strScriptsRoot + "/" + strScriptName;
+	std::string strScriptPath = m_strScriptsRoot + "\\" + strScriptName;
 
 	Script* pScript = new Script(strScriptPath, m_pInputHandler, entity);
 
