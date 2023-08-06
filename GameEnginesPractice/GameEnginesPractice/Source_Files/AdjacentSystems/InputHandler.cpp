@@ -5,6 +5,13 @@
 #include <algorithm>
 #include <windows.h>
 
+#include "SDL.h"
+
+#include "imgui.h"
+#include "backends/imgui_impl_sdl.h"
+#include "backends/imgui_impl_opengl3.h"
+
+
 InputHandler::InputHandler(const std::string& strResourceRoot) : 
 	m_pMouseSensitivity(2)
 {

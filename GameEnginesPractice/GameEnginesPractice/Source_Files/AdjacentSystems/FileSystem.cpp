@@ -1,4 +1,5 @@
 #include "AdjacentSystems/FileSystem.h"
+#include <fstream>
 
 FileSystem::FileSystem()
 {
@@ -8,29 +9,20 @@ FileSystem::~FileSystem()
 {
 }
 
-const std::string FileSystem::GetCodeRoot() 
+nlohmann::json FileSystem::GetProjectJson()
 {
-	return m_pCodeDir.string();
+	std::ifstream ifs(m_pLoadProjectFilePath.string());
+
+	nlohmann::json projJson;
+	ifs >> projJson;
+
+	return projJson;
 }
 
-const std::string FileSystem::GetMediaRoot()
+void FileSystem::SaveProjectJson(nlohmann::json& projectJson)
 {
-	return m_pMediaRoot.string();
-}
-
-const std::string FileSystem::GetScriptsRoot()
-{
-	return m_pScriptsRoot.string();
-}
-
-const std::string FileSystem::GetProjectLoadFile()
-{
-	return m_pLoadProjectFilePath.string();
-}
-
-const std::string FileSystem::GetProjectSaveFile()
-{
-	return m_pSaveProjectFilePath.string();
+	std::ofstream file(m_pSaveProjectFilePath);
+	file << projectJson;
 }
 
 const std::string FileSystem::JoinPaths(const std::string& strA, const std::string& strB) 

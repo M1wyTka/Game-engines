@@ -1,20 +1,12 @@
 #pragma once
 #include "Input.h"
-#include "Render/RenderEngine.h"
 
 #include <string>
 #include <unordered_map>
 #include <bitset>
 #include <stack>
 
-#include "Ogre.h"
-
-#include "SDL.h"
-
-#include "imgui.h"
-#include "backends/imgui_impl_sdl.h"
-#include "backends/imgui_impl_opengl3.h"
-
+#include "OgreVector2.h"
 
 class InputHandler
 {

@@ -2,6 +2,7 @@
 #include <string>
 #include <filesystem>
 #include <shared_mutex>
+#include <nlohmann/json.hpp>
 
 typedef std::shared_mutex Lock;
 typedef std::unique_lock<Lock>  WriteLock;
@@ -13,11 +14,14 @@ public:
 	FileSystem();
 	~FileSystem();
 
-	const std::string GetMediaRoot();
-	const std::string GetScriptsRoot();
-	const std::string GetCodeRoot();
-	const std::string GetProjectLoadFile();
-	const std::string GetProjectSaveFile();
+	const std::string GetMediaRootPath() {	return m_pMediaRoot.string(); };
+	const std::string GetScriptsRootPath() { return m_pScriptsRoot.string(); };
+	const std::string GetCodeRootPath() { return m_pCodeDir.string(); };
+	const std::string GetProjectLoadFilePath () { return m_pLoadProjectFilePath.string(); };
+	const std::string GetProjectSaveFilePath () { return m_pSaveProjectFilePath.string(); };
+
+	nlohmann::json GetProjectJson();
+	void SaveProjectJson(nlohmann::json& projectJson);
 
 	const std::string JoinPaths(const std::string& strA, const std::string& strB);
 

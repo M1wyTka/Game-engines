@@ -2,7 +2,6 @@
 #include <nlohmann/json.hpp>
 #include <vector>
 #include <string>
-#include <fstream>
 #include "ScriptSystem/EntityManager.h"
 #include "Render/RenderEngine.h"
 
@@ -26,8 +25,17 @@ public:
 
 private:
 	std::vector<Pawn>* ReadLevelField(const nlohmann::json& projectJson);
-	void ReadLevelLights(const nlohmann::json& projectJson);
-	void ReadLevelTerrain(const nlohmann::json& projectJson);
+	void ReadLevelEntities(const nlohmann::json& entitiesJson);
+	void SaveLevelEntities();
+
+	void ReadLevelLights(const nlohmann::json& lightsJson);
+	void SaveLevelLights();
+
+	void ReadLevelTerrain(const nlohmann::json& terrainJson);
+	void SaveLevelTerrain();
+
+	void ReadLevelCameras(const nlohmann::json& camerasJson);
+	void SaveLevelCameras();
 
 	RenderEngine* m_pRenderEngine;
 	EntityManager* m_pEntityManager;

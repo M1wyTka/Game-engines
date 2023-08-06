@@ -8,11 +8,7 @@ ProjectLoader::ProjectLoader(RenderEngine* renderEngine, EntityManager* entMgr) 
 	m_pRenderEngine(renderEngine),
 	m_pEntityManager(entMgr)
 {
-	//std::vector<Pawn>* candidates = GetLevelEntities(m_pFileSystem->GetProjectLoadFile());
-	//for (const auto& candidate : *candidates)
-	//{
-	//}	//Ogre::LogManager::getSingleton().logMessage(candidate.Name);
-
+	
 };
 
 ProjectLoader::~ProjectLoader() 
@@ -22,12 +18,7 @@ ProjectLoader::~ProjectLoader()
 
 std::vector<Pawn>* ProjectLoader::GetLevelEntities(const std::string& projectFilePath)
 {
-	//std::ifstream i(projectFilePath);
-	std::ifstream i(m_pFileSystem->GetProjectLoadFile());
-
-	nlohmann::json jf;
-	i >> jf;
-
+	nlohmann::json jf = m_pFileSystem->GetProjectJson();
 	std::vector<Pawn>* pwns = ReadLevelField(jf);
 
 	return pwns;
@@ -77,7 +68,7 @@ std::vector<Pawn>* ProjectLoader::ReadLevelField(const nlohmann::json& projectJs
 
 				if (val.key() == "cameras") 
 				{
-					//ignore
+					
 				}
 			}
 		}
@@ -129,8 +120,5 @@ void ProjectLoader::SaveProject(std::string outFilePath, std::vector<LoadedObjec
 		arr.push_back({ ent });
 	}
 	nlohmann::json LevelJSON = { { "level", { {"entities", arr }} } };
-
-	std::ofstream file(m_pFileSystem->GetProjectSaveFile());
-	file << LevelJSON;
-
+	m_pFileSystem->SaveProjectJson(LevelJSON);
 }

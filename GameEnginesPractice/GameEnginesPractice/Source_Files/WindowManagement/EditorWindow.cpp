@@ -99,7 +99,7 @@ void EditorWindow::EndGuiUpdate()
 void EditorWindow::Update() 
 {
 	SDL_GL_MakeCurrent(m_SDLWindow, m_GLContext);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 	ProcessSDLInput();
 
 	RenderGui();
@@ -141,7 +141,7 @@ void EditorWindow::DisplaySelectionParameters()
 		ImGui::InputInt3("Rotation", rotVec);
 		ImGui::End();
 	
-		m_pRenderEngine->GetRT()->RC_LambdaAction([&] {m_pCurrentSelection->setPosition(posVec[0], posVec[1], posVec[2]); });
+		m_pRenderEngine->GetRT()->RC_LambdaAction([&] { m_pCurrentSelection->setPosition(posVec[0], posVec[1], posVec[2]); });
 		
 	
 		Ogre::Quaternion q = m_pCurrentSelection->getOrientation();
@@ -163,7 +163,7 @@ void EditorWindow::DisplaySelectionParameters()
 			Ogre::Radian offsetY = radY - m_pCurrentSelection->getOrientation().getYaw();
 			q.FromAngleAxis(offsetY, Ogre::Vector3::UNIT_Y);
 			q = q * m_pCurrentSelection->getOrientation();
-			m_pRenderEngine->GetRT()->RC_LambdaAction([&] {m_pCurrentSelection->setOrientation(q); });
+			m_pRenderEngine->GetRT()->RC_LambdaAction([&] { m_pCurrentSelection->setOrientation(q); });
 			return;
 		}
 	
